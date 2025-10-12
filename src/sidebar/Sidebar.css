@@ -1,0 +1,1175 @@
+/* --- [REELDECKS] FONT DECLARATION --- */
+@font-face {
+  font-family: 'Sansation';
+  src: url('chrome-extension://__MSG_@@extension_id__/fonts/Sansation-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* --- [REELDECKS] CSS VARIABLES & ROOT STYLES --- */
+:root {
+  /* Fonts */
+  --font-primary: 'Roboto', 'Arial', sans-serif;
+  --font-logo: 'Sansation', var(--font-primary);
+
+  /* Colors */
+  --color-primary-red: #CC0000;
+  --color-primary-red-hover: #A30000;
+  
+  --color-text-primary: #0F0F0F;
+  --color-text-secondary: #606060;
+  --color-text-on-primary: #FFFFFF;
+  
+  --color-bg-main: #F9F9F9;
+  --color-bg-card: #FFFFFF;
+  --color-bg-hover: #F2F2F2;
+  --color-bg-disabled: #F2F2F2;
+  --color-bg-selected: #E5E5E5;
+
+  --color-border: #E0E0E0;
+  --color-focus-ring: #3EA6FF;
+
+  /* Spacing & Radius */
+  --radius-small: 6px;
+  --radius-medium: 8px;
+  --radius-large: 12px;
+  --radius-pill: 20px;
+
+  /* Shadows */
+  --shadow-subtle: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* --- [REELDECKS] MAIN SIDEBAR CONTAINER --- */
+#yt-flashcards-sidebar {
+  position: fixed;
+  top: 56px; /* Height of YouTube's top bar */
+  right: 0;
+  width: 360px; /* Slightly wider for better spacing */
+  height: calc(100% - 56px);
+  background-color: var(--color-bg-main);
+  border-left: 1px solid var(--color-border);
+  z-index: 9999;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+#yt-flashcards-sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  /* This SVG generates a random, grainy noise pattern */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+
+  /* --- CONTROL THE INTENSITY HERE --- */
+  opacity: 0.1; /* A very low value makes it subtle and professional */
+
+  pointer-events: none; /* Allows clicks to pass through to the elements behind it */
+  z-index: -1; /* Pushes the layer behind the main content */
+}
+
+#yt-flashcards-sidebar.ytf-sidebar-open {
+  transform: translateX(0);
+}
+
+/* --- [REELDECKS] HEADER --- */
+.ytf-sidebar-header {
+  padding: 10px 12px 10px 20px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  background-color: var(--color-bg-card);
+  flex-shrink: 0;
+}
+
+.ytf-app-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#ytf-header-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.ytf-app-title-container span {
+  font-family: var(--font-logo);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.ytf-header-spacer {
+  flex-grow: 1;
+}
+
+.ytf-header-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  color: var(--color-text-secondary);
+}
+
+.ytf-header-icon-btn:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.ytf-header-icon-btn svg {
+  width: 24px;
+  height: 24px;
+}
+.ytf-close-btn {
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+}
+
+
+/* --- [REELDECKS] MAIN CONTENT AREA & STATES --- */
+.ytf-sidebar-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 24px;
+  font-size: 14px;
+}
+
+/* Make all state containers fill the height */
+#ytf-initial-state, #ytf-results-state, #ytf-deck-selection-state,
+#ytf-add-card-state, #ytf-initial-choice-state,
+#ytf-loading-state, #ytf-signup-state, #ytf-login-state {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#ytf-loading-state, #ytf-signup-state, #ytf-initial-choice-state, #ytf-login-state {
+  align-items: center;
+  justify-content: center;
+}
+
+#ytf-initial-choice-state h3 {
+  margin-bottom: 20px;
+}
+
+#ytf-deck-selection-state h4 {
+  margin-bottom: 15px;
+  text-align: left;
+  flex-shrink: 0; /* Prevent the title from shrinking */
+}
+
+.ytf-hidden {
+  display: none !important;
+}
+
+.ytf-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+.ytf-view-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  flex-grow: 1;
+}
+.ytf-view-header .ytf-header-placeholder {
+  width: 40px;
+  height: 40px;
+}
+
+/* --- [REELDECKS] BUTTONS --- */
+
+/* Primary Action Button (Generate, Save, etc.) */
+.ytf-generate-btn, .ytf-primary-action-btn {
+  width: 100%;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary-red);
+  color: var(--color-text-on-primary);
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ytf-primary-action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ytf-generate-btn:hover, .ytf-primary-action-btn:hover {
+  background-color: var(--color-primary-red-hover);
+}
+.ytf-generate-btn { margin-top: auto; margin-bottom: 2px; } /* Push to bottom on initial screen */
+
+/* Secondary Action Button (Cancel, Export .txt) */
+.ytf-secondary-action-btn, .ytf-export-btn {
+  width: 100%;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+  color: var(--color-text-primary);
+  transition: background-color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.ytf-secondary-action-btn:hover, .ytf-export-btn:hover {
+  background-color: var(--color-bg-hover);
+  border-color: #d3d3d3;
+}
+.ytf-pro-btn {
+  background-color: var(--color-bg-disabled);
+}
+
+/* Icon Button (Back, Nav, etc.) */
+.ytf-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+.ytf-icon-btn:hover {
+  background-color: var(--color-bg-hover);
+}
+.ytf-icon-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* --- [REELDECKS] FORM ELEMENTS & OPTIONS --- */
+
+.ytf-options-container {
+  text-align: left;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ytf-option-group label {
+  display: block;
+  font-weight: 500;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: var(--color-text-secondary);
+}
+
+.ytf-option-group select, .ytf-form-group textarea, .ytf-form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-medium);
+  border: 1px solid #CCCCCC;
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ytf-option-group select:focus, .ytf-form-group textarea:focus, .ytf-form-group input:focus {
+  outline: none;
+  border-color: var(--color-focus-ring);
+  box-shadow: 0 0 0 2px rgba(62, 166, 255, 0.3);
+}
+.ytf-form-group input[readonly] {
+  background-color: var(--color-bg-disabled);
+  cursor: not-allowed;
+}
+
+/* 1. The wrapper for positioning the custom arrow */
+.ytf-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* 2. Create the custom arrow using a pseudo-element */
+.ytf-select-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 15px; /* This is your right padding! Adjust as needed. */
+  transform: translateY(-50%);
+  
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--color-text-secondary); /* Creates the triangle */
+  
+  pointer-events: none; /* Allows clicks to pass through to the select element */
+}
+
+/* 3. Style the <select> element itself */
+.ytf-select-wrapper select {
+  /* Hide the default browser arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  /* Add space on the right so text doesn't overlap our custom arrow */
+  padding-right: 35px; 
+}
+
+/* Segmented Control (Card Quantity) */
+.ytf-segmented-control {
+  display: flex;
+  width: 100%;
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  border: 1px solid #CCCCCC;
+}
+.ytf-segmented-control input[type="radio"] { display: none; }
+.ytf-segmented-control label {
+  flex: 1;
+  text-align: center;
+  padding: 8px 10px;
+  cursor: pointer;
+  background-color: var(--color-bg-card);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s, color 0.2s;
+  margin-bottom: 0;
+  border-right: 1px solid #CCCCCC;
+}
+.ytf-segmented-control label:last-of-type { border-right: none; }
+.ytf-segmented-control input[type="radio"]:checked + label {
+  background-color: var(--color-bg-selected);
+  color: var(--color-text-primary);
+}
+
+
+/* --- [REELDECKS] LOADING & INFO STATES --- */
+.ytf-loader {
+  border: 4px solid var(--color-bg-hover);
+  border-top: 4px solid var(--color-primary-red);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: ytf-spin 1s linear infinite;
+  margin: 20px auto;
+}
+.ytf-loading-text {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+}
+@keyframes ytf-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.ytf-info-box {
+  font-size: 13px;
+  padding: 12px;
+  margin-bottom: 24px;
+  border-radius: var(--radius-medium);
+  text-align: center;
+  line-height: 1.5;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+.ytf-info-box.warning {
+  background-color: #FFFBEA;
+  color: #926C00;
+  border-color: #FCE18A;
+  display: block;
+}
+.ytf-info-box.info {
+  background-color: #F0F4F8;
+  color: #334E68;
+  display: block;
+}
+
+/* --- [REELDECKS] STUDY / RESULTS VIEW --- */
+.ytf-study-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+  flex-shrink: 0;
+}
+.ytf-study-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.ytf-study-header-actions-left, .ytf-study-header-actions-right { display: flex; gap: 8px; }
+.ytf-card-counter {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+#ytf-card-deck-container {
+  flex-grow: 1;
+  position: relative;
+  perspective: 1000px;
+  margin-bottom: 15px;
+}
+.ytf-study-card {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  transform-style: preserve-3d;
+  transition: transform 0.6s, opacity 0.3s;
+  user-select: none;
+}
+
+.ytf-study-card.dragging {
+  cursor: grabbing;
+}
+
+.ytf-study-card.is-flipped { transform: rotateY(180deg); }
+
+.ytf-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+.ytf-card-front, .ytf-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column; /* For timestamp positioning */
+  align-items: center;
+  /* justify-content: center; */
+  font-size: 18px;
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+  /* padding: 20px; */
+  box-sizing: border-box;
+}
+.ytf-card-back {
+  transform: rotateY(180deg);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.ytf-card-content-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+  padding: 20px 15px 0 15px; /* Padding on top, left, right. NO bottom padding. */
+  box-sizing: border-box;
+}
+
+.ytf-card-content {
+  padding: 16px;
+  text-align: left;
+  overflow-y: auto; 
+  line-height: 1.6;
+  user-select: text; /* text selection */
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+.ytf-timestamp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-bg-hover);
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+  margin: 12px 15px 15px 20px; /* top, sides, bottom margins */
+  align-self: center;
+  cursor: pointer;
+}
+.ytf-timestamp-link:hover {
+  background-color: var(--color-bg-selected);
+  color: var(--color-text-primary);
+}
+.ytf-timestamp-link svg { width: 14px; height: 14px; }
+.ytf-study-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+#ytf-flip-btn {
+  width: 50px;
+  height: 50px;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary-red);
+}
+#ytf-flip-btn:hover {
+  background-color: #FEF0F0;
+  border-color: #F7C8C8;
+}
+.ytf-actions-section {
+  padding: 20px 0 0 0;
+  margin-top: auto;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ytf-export-options { display: flex; flex-direction: column; gap: 8px; }
+
+/* --- [REELDECKS] DECK LIST & CHOICE VIEW --- */
+.ytf-deck-list-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-y: auto;
+}
+.ytf-deck-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background-color: var(--color-bg-card);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.ytf-deck-item:hover {
+  background-color: var(--color-bg-hover);
+  border-color: #D3D3D3;
+}
+.ytf-deck-item-main { display: flex; flex-direction: column; gap: 4px; }
+.ytf-deck-item-title {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  font-size: 15px;
+  text-transform: capitalize;
+}
+.ytf-deck-item-date { font-size: 12px; color: var(--color-text-secondary); }
+.ytf-deck-item-info {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-hover);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+.ytf-deck-selection-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.ytf-deck-selection-actions .ytf-secondary-action-btn,
+.ytf-deck-selection-actions .ytf-primary-action-btn {
+  flex-grow: 1;
+}
+
+.ytf-choice-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.ytf-choice-btn {
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
+  background-color: var(--color-bg-card);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: all 0.2s ease-in-out;
+}
+.ytf-choice-btn:hover {
+  border-color: var(--color-primary-red);
+  box-shadow: var(--shadow-subtle);
+  transform: translateY(-2px);
+}
+.ytf-choice-btn span { font-weight: 500; font-size: 16px; }
+.ytf-choice-btn small { font-size: 13px; color: var(--color-text-secondary); }
+
+/* --- [REELDECKS] ADD CARD VIEW --- */
+.ytf-add-card-scroll-area {
+  flex-grow: 1; 
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 8px;
+}
+
+#ytf-add-card-state h4 { text-align: center; margin-bottom: 20px; }
+
+.ytf-form-group { margin-bottom: 16px; display: flex; flex-direction: column; }
+.ytf-form-actions {
+  margin-top: auto;
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ytf-recently-added-container {
+  margin-top: 20px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 15px;
+  /* flex-grow: 1; */
+  flex-shrink: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ytf-recently-added-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin: 0 0 5px 0;
+}
+.ytf-recently-added-item {
+  font-size: 13px;
+  background-color: var(--color-bg-hover);
+  padding: 8px 12px;
+  border-radius: var(--radius-small);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* --- EMPTY STATE --- */
+#ytf-empty-deck-state {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.ytf-empty-deck-content { display: flex; flex-direction: column; gap: 5px; color: var(--color-text-secondary); }
+.ytf-empty-deck-content p { font-size: 16px; font-weight: 500; margin: 0; color: var(--color-text-primary);}
+.ytf-empty-deck-content span { font-size: 14px; }
+
+
+/* --- SIGNUP/LOGIN STATE --- */
+#ytf-signup-state, #ytf-login-state {
+  text-align: center;
+  padding: 20px;
+}
+.ytf-signup-content {
+  position: relative;
+  padding-top: 40px;
+}
+
+.ytf-signup-logo .ytf-login-logo  {
+  width: 38px; height: 38px;
+  position: absolute;
+  top: -82px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.ytf-signup-content h3 { font-size: 18px; margin-bottom: 12px; }
+.ytf-signup-content p { font-size: 14px; color: var(--color-text-primary); margin-bottom: 5px; }
+.ytf-signup-content ul {
+  text-align: left;
+  list-style-type: none;
+  padding-left: 10px;
+  margin: 20px 0;
+}
+.ytf-signup-content ul li { font-size: 14px; margin-bottom: 10px; color: var(--color-text-primary); }
+
+/* Video selection */
+
+.ytf-small-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+/* --- Range Slider Styles --- */
+/* These are basic styles. A library like noUiSlider will have its own required CSS */
+.ytf-slider-container {
+  padding: 30px 10px 20px 10px;
+}
+
+.ytf-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* --- noUiSlider Customization --- */
+
+/* Target the slider handles */
+#ytf-time-range-slider .noUi-handle {
+  width: 24px;   /* Default is 34px */
+  height: 24px;  /* Default is 28px */
+  right: -12px;  /* Half of the new width */
+  top: -4px;     /* Adjust vertical position */
+  border-radius: 50%; /* Ensure it stays circular */
+}
+
+/* Target the little dot inside the handle */
+#ytf-time-range-slider .noUi-handle::before,
+#ytf-time-range-slider .noUi-handle::after {
+  width: 10px;    /* Make the inner dot smaller */
+  height: 1px;    /* Make it thinner */
+  left: 6px;      /* Reposition horizontally */
+  top: 11px;      /* Reposition vertically */
+}
+
+#ytf-time-range-slider .noUi-handle::after {
+   /* This rotates the second line to form a 'plus' sign */
+   transform: rotate(90deg);
+}
+
+/* --- [REELDECKS] LOGIN PROMPT STYLING (IN SIGNUP VIEW) --- */
+
+.ytf-login-prompt {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.ytf-text-link-btn {
+  /* Reset button styles to look like a link */
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  
+  /* Make it look and act like a link */
+  color: var(--color-primary-red);
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  transition: text-decoration 0.2s;
+
+  display: inline-flex;
+  align-items: center; 
+  gap: 4px;
+}
+
+.ytf-text-link-btn span {
+  margin-left: 2px;
+}
+
+.ytf-text-link-btn svg {
+  width: 13px;
+  height: 13px;
+  /* Make it move up slightly to align with the text better */
+  transform: translateY(-1px);
+}
+
+.ytf-text-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* Accessibility: Add a clear focus ring */
+.ytf-text-link-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+  text-decoration: none;
+}
+
+/* Scrollbar */
+/* This targets the scrollbar track inside the content area */
+.ytf-card-content::-webkit-scrollbar {
+  width: 4px; /* Makes the scrollbar thinner. Adjust as you like (e.g., 6px). */
+}
+
+/* This is the background of the scrollbar track */
+.ytf-card-content::-webkit-scrollbar-track {
+  background: transparent; /* Makes the track invisible */
+  border-radius: 4px;
+}
+
+/* This is the draggable part of the scrollbar (the "thumb") */
+.ytf-card-content::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;    /* A light grey color */
+  border-radius: 4px;           /* Rounded corners */
+  border: 2px solid transparent;/* Creates padding around the thumb */
+  background-clip: content-box;
+}
+
+/* Optional: Change color on hover for better UX */
+.ytf-card-content::-webkit-scrollbar-thumb:hover {
+  background-color: #a8a8a8; /* A slightly darker grey */
+}
+
+.ytf-add-card-scroll-area::-webkit-scrollbar {
+  width: 4px;
+}
+.ytf-add-card-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ytf-add-card-scroll-area::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.ytf-add-card-scroll-area::-webkit-scrollbar-thumb:hover {
+  background-color: #a8a8a8;
+}
+
+/* Screen shot section */
+/* --- Screenshot Preview in Add Card Form --- */
+.ytf-screenshot-preview, .ytf-screenshot-placeholder {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.ytf-screenshot-placeholder {
+  display: flex;
+}
+
+.ytf-screenshot-img-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  padding-top: 56.25%; /* This is the magic number for 16:9 (9 / 16 = 0.5625) */
+  background-color: #f0f0f0;
+}
+
+#ytf-screenshot-preview-img {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ytf-screenshot-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.ytf-screenshot-btn {
+  width: 28px; 
+  height: 28px;
+  padding: 0; 
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  border: none; 
+
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.ytf-screenshot-btn:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.ytf-screenshot-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* --- Screenshot Display in Flashcard --- */
+.ytf-card-screenshot {
+  display: none; /* Hidden by default */
+  width: 100%;   /* Fills the full width of the card */
+  height: 140px;  /* A fixed height looks best. Adjust as needed. */
+  object-fit: cover; /* Ensures the image covers the area without distortion */
+  flex-shrink: 0;   /* Prevents the image from shrinking */
+  
+  /* Optional: Round only the top corners to match the card's border-radius */
+  border-top-left-radius: var(--radius-large);
+  border-top-right-radius: var(--radius-large);
+}
+
+/* ALL cards screenshot capture icon */
+.ytf-card-actions {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 5; /* Ensure it's on top of content */
+  display: flex;
+  gap: 8px;
+}
+
+.ytf-capture-for-card-btn {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #727272;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.ytf-capture-for-card-btn:hover {
+  background-color: white;
+  transform: translateY(-1px);
+}
+
+.ytf-capture-for-card-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* A simple spinner to show progress */
+.ytf-add-screenshot-btn .ytf-small-loader {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+
+#ytf-add-screenshot-btn {
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/*          NEW STYLES FOR EXPORT DROPDOWN MENU           */
+/* --- Main Container --- */
+/* This container uses position: relative so the absolute menu inside is positioned correctly. */
+.ytf-export-actions {
+  position: relative;
+  width: 100%;
+}
+
+/* --- The Trigger Button --- */
+#ytf-export-dropdown-btn {
+  width: 100%; /* Make the button take the full width of its container */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px; /* Space between text and chevron icon */
+}
+
+/* --- Chevron Icon --- */
+#ytf-export-dropdown-btn .ytf-chevron-icon {
+  transition: transform 0.2s ease-in-out;
+}
+
+#ytf-export-dropdown-btn.is-open .ytf-chevron-icon {
+  transform: rotate(180deg);
+}
+
+/* --- The Dropdown Menu Panel --- */
+.ytf-dropdown-menu {
+  position: absolute;
+  /* Position it right above the button */
+  bottom: 100%; 
+  left: 0;
+  right: 0;
+  width: 100%;
+  margin-bottom: 8px; /* A little space between the button and the menu */
+
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb; /* A subtle border */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  z-index: 100; /* Ensure it appears above other content */
+  
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* Space between menu items */
+
+  /* For the nice fade-in/slide-up animation */
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+/* --- Hidden State for the Menu --- */
+/* When .ytf-hidden is applied, it becomes invisible and slides down slightly */
+.ytf-dropdown-menu.ytf-hidden {
+  opacity: 0;
+  transform: translateY(5px);
+  pointer-events: none; /* Prevent clicks when hidden */
+}
+
+/* --- Individual Dropdown Items (Buttons) --- */
+.ytf-dropdown-item {
+  /* Reset default button styles */
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  color: #374151; /* A dark gray for text */
+  width: 100%;
+  text-align: left;
+  
+  /* Layout and Spacing */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space for future icons */
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+
+  /* Smooth transition for hover effect */
+  transition: background-color 0.15s ease;
+}
+
+/* Hover & Focus state for interactivity */
+.ytf-dropdown-item:not(:disabled):hover,
+.ytf-dropdown-item:not(:disabled):focus {
+  background-color: #f3f4f6; /* A very light gray */
+  outline: none;
+}
+
+/* --- Disabled State for Pro/Locked Features --- */
+.ytf-dropdown-item:disabled {
+  color: #9ca3af; /* A lighter gray to indicate it's inactive */
+  cursor: not-allowed;
+}
+/* Prevent the hover effect on disabled items */
+.ytf-dropdown-item:disabled:hover {
+  background-color: transparent;
+}
+
+
+/* --- The "Pro" Lock Icon --- */
+.ytf-dropdown-item .ytf-pro-lock {
+  margin-left: auto; /* Pushes the lock to the far right */
+  font-size: 12px;
+  user-select: none;
+}
+
+
+/* --- The Divider Line --- */
+.ytf-dropdown-divider {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 4px 0;
+}
+
+/*          NEW STYLES FOR BUTTON LOADING SPINNER         */
+/* --- The Spinner Element --- */
+.ytf-button-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.4); /* A light, semi-transparent border */
+  border-top-color: #060606; /* The solid color part that spins */
+  border-radius: 50%;
+  animation: ytf-spin 0.8s linear infinite;
+}
+
+/* --- The Loading State Class --- */
+/* When this class is added to the button: */
+#ytf-export-dropdown-btn.is-loading {
+  cursor: wait; /* Indicate something is happening */
+}
+
+/* Hide the normal button text/icon */
+#ytf-export-dropdown-btn.is-loading .ytf-button-content {
+  display: none;
+}
+
+/* Show the spinner */
+#ytf-export-dropdown-btn.is-loading .ytf-button-spinner {
+  display: block; /* Overrides the default .ytf-hidden */
+}
+
+
+/* --- The Keyframe Animation for the Spin --- */
+@keyframes ytf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Minor adjustment to the button itself for better spinner alignment */
+#ytf-export-dropdown-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ytf-button-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ytf-button-content > span {
+  font-weight: 500;
+}
+
+.ytf-button-content > * {
+  vertical-align: middle;
+}

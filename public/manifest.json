@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "ReelDecks V2 DEV",
+  "version": "2.0.0",
+  "description": "AI-powered learning from YouTube videos.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "downloads"
+  ],
+  "host_permissions": [
+    "https://*.youtube.com/*"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:3050/*",
+      "https://reeldecks.com/*",
+      "https://www.reeldecks.com/*"
+    ]
+  },
+  "background": {
+    "service_worker": "assets/background.js",
+    "type": "module"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*.png",
+        "fonts/*.ttf",
+        "vendor/katex/katex.min.css",
+        "vendor/katex/katex.min.js",
+        "vendor/katex/contrib/auto-render.min.js",
+        "vendor/katex/fonts/*"
+      ],
+      "matches": [ "https://*.youtube.com/*" ]
+    }
+  ],
+  "action": {
+    "default_title": "Toggle ReelDecks Sidebar",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["assets/content.js"],
+      "css": ["assets/content.css"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
