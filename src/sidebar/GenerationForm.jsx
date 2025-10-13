@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Slider from "rc-slider";
 
 import { getOrCreateAnonymousId, logger } from "../utils/extension";
@@ -19,12 +19,17 @@ function GenerationForm({
   onBack,
   existingDeckId,
 }) {
+
   const [cardType, setCardType] = useState(
     videoMetadata?.contentTypeOptions?.suggested?.[0]?.value || "summary"
   );
   const [cardQuantity, setCardQuantity] = useState("10");
   const [cardTone, setCardTone] = useState("standard");
   const [timeRange, setTimeRange] = useState([0, videoMetadata.duration]);
+
+  const [infoMessage, setInfoMessage] = useState("");
+  const [isGenerateDisabled, setIsGenerateDisabled] = useState(false);
+  const [infoBoxClass, setInfoBoxClass] = useState("ytf-info-box");
 
   const handleGenerateClick = async () => {
     const videoId = new URLSearchParams(window.location.search).get("v");
@@ -53,6 +58,63 @@ function GenerationForm({
     // Call the function passed down from the parent component
     onGenerate(payload);
   };
+
+  // --- Effect for calculating generation info ---
+  useEffect(() => {
+    const selectedDuration = timeRange[1] - timeRange[0];
+
+    // Check if we have limitations data (i.e., user is logged in)
+    if (videoMetadata.limitations) {
+      // --- LOGGED-IN USER LOGIC ---
+      const { userPlanVideoLengthLimit, userCreditBalance, creditCostRule } =
+        videoMetadata.limitations;
+
+      if (selectedDuration > userPlanVideoLengthLimit) {
+        setInfoMessage(
+          `Selection is too long. Your plan's limit is ${
+            userPlanVideoLengthLimit / 60
+          } minutes.`
+        );
+        setInfoBoxClass("ytf-info-box warning");
+        setIsGenerateDisabled(true);
+        return; // Stop further checks
+      }
+
+      const creditsPerMinute = creditCostRule?.creditsPerMinute || 1;
+      const estimatedCost = Math.ceil(
+        (selectedDuration / 60) * creditsPerMinute
+      );
+
+      if (estimatedCost > userCreditBalance) {
+        setInfoMessage(
+          `This will cost ${estimatedCost} credits, but you only have ${userCreditBalance}.`
+        );
+        setInfoBoxClass("ytf-info-box warning");
+        setIsGenerateDisabled(true);
+        return;
+      }
+
+      setInfoMessage(`This will cost ≈ ${estimatedCost} credits.`);
+      setInfoBoxClass("ytf-info-box info");
+      setIsGenerateDisabled(false);
+    } else {
+      // --- ANONYMOUS USER LOGIC ---
+      const freeTierLimitSeconds = 20 * 60; // 20 minutes
+
+      if (selectedDuration > freeTierLimitSeconds) {
+        const selectedMinutes = Math.round(selectedDuration / 60);
+        setInfoMessage(
+          `Your selection (${selectedMinutes} min) is over the 20-minute limit for the free trial.`
+        );
+        setInfoBoxClass("ytf-info-box warning");
+        setIsGenerateDisabled(true);
+      } else {
+        // No message needed if they are within the limit
+        setInfoMessage("");
+        setIsGenerateDisabled(false);
+      }
+    }
+  }, [timeRange, videoMetadata]);
 
   return (
     <div id="ytf-initial-state">
@@ -177,8 +239,11 @@ function GenerationForm({
         </div>
       </div>
 
-      {/* We'll add the info box back in later */}
-      <div id="ytf-generation-info" className="ytf-info-box"></div>
+      {infoMessage && (
+        <div id="ytf-generation-info" className={infoBoxClass}>
+          {infoMessage}
+        </div>
+      )}
 
       <button className="ytf-generate-btn" onClick={handleGenerateClick}>
         Generate Flashcards

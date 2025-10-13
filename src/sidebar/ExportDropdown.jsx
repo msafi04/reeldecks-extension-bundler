@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { logger } from "../utils/extension";
 
+import { useNotifier } from "../context/NotificationContext";
+
 function ExportDropdown({
   isUserLoggedIn,
   isProUser,
   currentDeckData,
   isNotionConnected,
 }) {
+  const notify = useNotifier();
+
   const [isOpen, setIsOpen] = useState(false);
   const [exportState, setExportState] = useState("idle"); // idle, exporting
   const dropdownRef = useRef(null);
@@ -48,9 +52,10 @@ function ExportDropdown({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      notify.success("Card exported as txt successfully!");
     } catch (error) {
       console.error("TXT export failed:", error);
-      alert("Failed to export as TXT.");
+      notify.error(`Failed to export as TXT.`);
     }
   };
 
@@ -78,9 +83,10 @@ function ExportDropdown({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      notify.success("Card exported as csv successfully!");
     } catch (error) {
       console.error("CSV export failed:", error);
-      alert("Failed to export as CSV.");
+      notify.error(`Failed to export as CSV.`);
     }
   };
 
@@ -99,13 +105,15 @@ function ExportDropdown({
       if (response.success) {
         // The download has started! Show a confirmation to the user.
         logger.log("Download initiated successfully!");
+        notify.success(`Download initiated successfully`);
       } else {
         // The background script caught an error. Show it to the user.
         logger.error("Anki export failed:", response.error);
+        notify.error(`Anki export failed. Please try again.`);
       }
     } catch (error) {
       logger.error("Failed to export for Anki:", error);
-      alert(`Anki export failed: ${error.message}`);
+      notify.error(`Anki export failed. Please try again.`);
     } finally {
       setExportState("idle");
     }
@@ -134,10 +142,11 @@ function ExportDropdown({
       if (response.notionUrl) {
         window.open(response.notionUrl, "_blank");
       } else {
+        notify.error(`Notion export failed. Please try again.`);
         throw new Error("Export completed, but no Notion URL was returned.");
       }
     } catch (err) {
-      alert(`Notion export failed: ${err.message}`);
+      notify.error(`Notion export failed. Please try again.`);
     } finally {
       setTimeout(() => setExportState("idle"), 1000);
     }
@@ -168,6 +177,9 @@ function ExportDropdown({
       // Background script will open the auth tab.
     } catch (err) {
       alert(`Could not start the Notion connection process: ${err.message}`);
+      notify.error(
+        `Could not start the Notion connection process. Please try again.`
+      );
       await chrome.storage.local.remove("postAuthAction"); // Clean up on failure
     }
   };

@@ -1,0 +1,55 @@
+.notification-container {
+  position: absolute; 
+  top: 20px;
+  left: 20px; 
+  right: 20px;
+  transform: none;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  /* Make it so clicks pass through the container itself */
+  pointer-events: none;
+}
+
+.notification-toast {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 15px; /* <-- Change from 14px (or default) to 15px */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: toast-fade-in-top 0.3s ease-out; /* <-- Use a new animation name */
+  pointer-events: all;
+  width: 90%;
+  text-align: center;
+}
+
+.notification-toast.info {
+  background-color: #EBF8FF; /* Very light blue */
+  color: #2C5282; /* Dark blue text */
+  border: 1px solid #BEE3F8; /* Light blue border */
+}
+
+.notification-toast.success {
+  background-color: #F0FFF4; /* Very light green */
+  color: #276749; /* Dark green text */
+  border: 1px solid #C6F6D5; /* Light green border */
+}
+
+.notification-toast.error {
+  background-color: #FFF5F5; /* Very light red */
+  color: #9B2C2C; /* Dark red text */
+  border: 1px solid #FED7D7; /* Light red border */
+}
+
+@keyframes toast-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

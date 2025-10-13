@@ -1,0 +1,29 @@
+
+.ytf-status-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  padding: 20px;
+  color: var(--color-text-secondary);
+}
+
+.ytf-status-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.ytf-status-view h3 {
+  font-size: 18px;
+  color: var(--color-text-primary);
+  margin: 0 0 8px 0;
+}
+
+.ytf-status-view p {
+  font-size: 14px;
+  max-width: 250px;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}

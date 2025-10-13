@@ -4,8 +4,17 @@ import GenerationForm from "./GenerationForm";
 import ResultsView from "./ResultsView";
 import AddCardView from "./AddCardView";
 
+import StatusView from "./StatusView";
+import DeckListSkeleton from "./DeckListSkeleton";
+import CardViewSkeleton from "./CardViewSkeleton";
+
 import { logger, formatDate, redirectToWebApp } from "../utils/extension";
 import { contentTypeLabels } from "../utils/options";
+
+import {
+  useNotifier,
+  NotificationContainer,
+} from "../context/NotificationContext";
 
 function Sidebar({
   isProUser,
@@ -19,7 +28,12 @@ function Sidebar({
   existingDecks,
   setExistingDecks,
   onLogout,
+  onRetry,
+  loadingContext,
+  setLoadingContext,
 }) {
+  const notify = useNotifier();
+
   const [flashcardData, setFlashcardData] = useState([]);
   const [isAiDeck, setIsAiDeck] = useState(false);
   const [currentDeckData, setCurrentDeckData] = useState(null);
@@ -69,6 +83,7 @@ function Sidebar({
 
   const showDeckSelectionView = async () => {
     logger.log("Navigating to Deck Selection, fetching fresh list...");
+    setLoadingContext('decks');
     setCurrentView("loading");
     try {
       const videoId = new URLSearchParams(window.location.search).get("v");
@@ -110,6 +125,7 @@ function Sidebar({
 
   const handleLoadDeck = async (deckId) => {
     logger.log(`Loading deck with ID: ${deckId}`);
+    setLoadingContext("cards");
     setCurrentView("loading");
     try {
       const response = await chrome.runtime.sendMessage({
@@ -156,6 +172,7 @@ function Sidebar({
       if (newDeck.error) throw new Error(newDeck.error);
 
       logger.log("Manual deck created:", newDeck);
+      notify.success("Empty Deck created. You can add custom cards to it.");
       setCurrentDeckData(newDeck);
       setFlashcardData([]);
       setIsContinuousAddMode(true);
@@ -163,6 +180,7 @@ function Sidebar({
     } catch (err) {
       logger.error("Failed to create manual deck:", err);
       alert(`Could not create a new deck: ${err.message}`);
+      notify.error("Could not create a new deck. Please try again.");
       setCurrentView("initialChoice"); // Go back on error
     }
   };
@@ -209,11 +227,11 @@ function Sidebar({
         setCurrentCardIndex(insertionIndex);
         setCurrentView("results");
       }
-
+      notify.success("Card saved successfully!");
       return true;
     } catch (err) {
       logger.error("Failed to save card:", err);
-      alert(`Error saving card: ${err.message}`);
+      notify.error(`Error: ${err.message}`);
       return false;
     }
   };
@@ -223,6 +241,7 @@ function Sidebar({
       logger.log(
         "Metadata not present, fetching before showing generation form..."
       );
+      setLoadingContext("form");
       setCurrentView("loading");
       try {
         const videoId = new URLSearchParams(window.location.search).get("v");
@@ -246,8 +265,17 @@ function Sidebar({
   };
 
   const renderContent = () => {
+    logger.log(
+      `renderContent called. currentView: ${currentView}, loadingContext: ${loadingContext}`
+    );
     switch (currentView) {
       case "loading":
+        if (loadingContext === "decks") {
+          return <DeckListSkeleton />;
+        }
+        if (loadingContext === "cards") {
+          return <CardViewSkeleton />;
+        }
         return (
           <div id="ytf-loading-state">
             <div className="ytf-loader"></div>
@@ -507,10 +535,23 @@ function Sidebar({
           </div>
         );
       case "error":
-        return <div>Error loading data. Please try again.</div>;
+        return (
+          <StatusView
+            icon="😢"
+            title="Something Went Wrong"
+            message="We couldn't load the necessary data. Please check your connection and try again."
+            onRetry={onRetry}
+          />
+        );
 
       default:
-        return <div>Welcome!</div>;
+        return (
+          <StatusView
+            icon="✨"
+            title="Welcome to ReelDecks!"
+            message="Generating AI-powered study materials from YouTube."
+          />
+        );
     }
   };
   return (
@@ -560,6 +601,7 @@ function Sidebar({
         </button>
       </div>
       <div className="ytf-sidebar-content">{renderContent()}</div>
+      <NotificationContainer />
     </div>
   );
 }

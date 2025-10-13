@@ -1,8 +1,11 @@
-// src/App.jsx
 import React, { useState, useEffect } from "react";
 
 import Sidebar from "./sidebar/Sidebar";
 import { logger, parseJwtPayload } from "./utils/extension";
+
+import { NotificationProvider } from "./context/NotificationContext";
+
+// https://github.com/msafi04/reeldecks-extension-bundler.git
 
 function App() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
@@ -17,6 +20,17 @@ function App() {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isProUser, setIsProUser] = useState(false);
   const [isNotionConnected, setIsNotionConnected] = useState(false);
+
+  const [loadingContext, setLoadingContext] = useState("initial"); // 'initial', 'decks', 'cards', 'form
+
+  const closeAndResetSidebar = () => {
+    logger.log("Closing sidebar and resetting all state.");
+    setIsSidebarVisible(false);
+    setHasInitialized(false);
+    setVideoMetadata(null);
+    setExistingDecks([]);
+    setCurrentView("loading");
+  };
 
   // ---  Effect to listen for external state changes ---
   useEffect(() => {
@@ -72,6 +86,9 @@ function App() {
           logger.log(`User is Pro: ${isProUser}`);
 
           // --- LOGGED-IN USER FLOW ---
+          setLoadingContext("decks");
+          setCurrentView("loading");
+
           logger.log("Checking for existing decks...");
           const deckResponse = await chrome.runtime.sendMessage({
             action: "checkDeckExists",
@@ -139,12 +156,14 @@ function App() {
     const messageListener = (request, sender, sendResponse) => {
       if (request.action === "toggle_sidebar") {
         // setIsSidebarVisible((prev) => !prev);
-        setIsSidebarVisible((prev) => {
+        setIsSidebarVisible((prevIsVisible) => {
           // If we are about to CLOSE the sidebar, reset the initialized flag
-          if (prev === true) {
-            setHasInitialized(false);
+          if (prevIsVisible === true) {
+            closeAndResetSidebar();
+            return false;
+          } else {
+            return true;
           }
-          return !prev;
         });
         sendResponse({ status: "toggled" });
       }
@@ -155,7 +174,7 @@ function App() {
     return () => {
       chrome.runtime.onMessage.removeListener(messageListener);
     };
-  }, []);
+  }, [closeAndResetSidebar]);
 
   // Sends a status update TO the background script whenever visibility changes.
   useEffect(() => {
@@ -181,20 +200,8 @@ function App() {
           "New:",
           document.location.href
         );
+        closeAndResetSidebar();
         currentHref = document.location.href;
-
-        // Check if we are still on a video page
-        if (currentHref.includes("youtube.com/watch")) {
-          // Navigated from one video to another (SPA navigation)
-          logger.log("Navigated to a new video. Resetting state.");
-          // Close the sidebar and reset the initialized flag
-          setIsSidebarVisible(false);
-          setHasInitialized(false);
-        } else {
-          // Navigated away from a video page entirely
-          logger.log("Navigated away from video pages. Closing sidebar.");
-          setIsSidebarVisible(false);
-        }
       }
     });
 
@@ -220,11 +227,6 @@ function App() {
     chrome.runtime.onMessage.addListener(postAuthListener);
     return () => chrome.runtime.onMessage.removeListener(postAuthListener);
   }, []);
-
-  // If the sidebar shouldn't be visible, we render nothing
-  if (!isSidebarVisible) {
-    return null;
-  }
 
   const handleLogout = () => {
     logger.log("User logging out...");
@@ -295,20 +297,32 @@ function App() {
       setHasInitialized(false);
     }
   };
+
+  const handleRetry = () => {
+    setHasInitialized(false);
+  };
+
   return (
-    <Sidebar
-      isProUser={isProUser}
-      currentView={currentView}
-      setCurrentView={setCurrentView}
-      videoMetadata={videoMetadata}
-      setVideoMetadata={setVideoMetadata}
-      isUserLoggedIn={isUserLoggedIn}
-      isNotionConnected={isNotionConnected}
-      existingDecks={existingDecks}
-      setExistingDecks={setExistingDecks}
-      onClose={() => setIsSidebarVisible(false)}
-      onLogout={handleLogout}
-    />
+    <NotificationProvider>
+      {isSidebarVisible ? (
+        <Sidebar
+          isProUser={isProUser}
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          videoMetadata={videoMetadata}
+          setVideoMetadata={setVideoMetadata}
+          isUserLoggedIn={isUserLoggedIn}
+          isNotionConnected={isNotionConnected}
+          existingDecks={existingDecks}
+          setExistingDecks={setExistingDecks}
+          onClose={closeAndResetSidebar}
+          onLogout={handleLogout}
+          onRetry={handleRetry}
+          loadingContext={loadingContext}
+          setLoadingContext={setLoadingContext}
+        />
+      ) : null}
+    </NotificationProvider>
   );
 }
 

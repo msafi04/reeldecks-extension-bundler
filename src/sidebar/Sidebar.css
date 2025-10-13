@@ -37,7 +37,7 @@
 
   /* Shadows */
   --shadow-subtle: 0 1px 4px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 /* --- [REELDECKS] MAIN SIDEBAR CONTAINER --- */
@@ -1172,4 +1172,207 @@
 
 .ytf-button-content > * {
   vertical-align: middle;
+}
+/* --- Focus Mode Styles --- */
+
+/* The new button for toggling focus mode */
+.ytf-focus-btn {
+  background-color: rgba(255, 255, 255, 0.7);
+  color: #606060;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  opacity: 0.6;
+}
+
+.ytf-focus-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ytf-focus-btn:hover {
+  background-color: white;
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* Make the button appear on card hover for an even cleaner look */
+.ytf-study-card:not(:hover) .ytf-focus-btn {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#ytf-card-deck-container {
+  /* Animate these properties over 0.35s with a smooth curve */
+  transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+              padding-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* When the container has the 'is-focused' class... */
+.ytf-card-deck-container.is-focused {
+  /* Make the container take up all available space */
+  height: 100%;
+  padding-bottom: 20px;
+}
+
+.ytf-card-deck-container.is-focused .ytf-study-card {
+  /* Hide all cards by default in focus mode */
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* But, target ONLY the current card (which has opacity: 1 from its inline style) */
+.ytf-card-deck-container.is-focused .ytf-study-card[style*="opacity: 1"] {
+  /* Make it visible and expand to fill the container */
+  opacity: 1;
+  pointer-events: all;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: none !important;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Card Footer & image icon */
+.ytf-card-screenshot-display {
+  width: 100%;
+  height: 100%; /* Will be constrained by the footer */
+  object-fit: contain; /* Use 'contain' to see the whole image without cropping */
+  flex-grow: 1; /* Allow the image to take up available space */
+  min-height: 0; /* Important for flexbox sizing */
+  border-top-left-radius: var(--radius-large);
+  border-top-right-radius: var(--radius-large);
+}
+
+.ytf-card-back-footer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+
+.footer-col {
+  flex: 1; /* Each column will take up an equal amount of space */
+}
+
+.footer-col.left {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.footer-col.center {
+  display: flex;
+  justify-content: center;
+}
+
+.footer-col.right {
+  display: flex;
+  justify-content: flex-end
+}
+
+.ytf-image-toggle-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  margin: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.ytf-image-toggle-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  opacity: 1;
+}
+
+/* Make timestamp link style similar */
+.ytf-card-back-footer .ytf-timestamp-link {
+  background: none;
+  padding: 6px;
+  margin: 0;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit; /* <-- Inherit color from the card's theme */
+  text-decoration: none;
+  font-size: 13px;
+  /* font-weight: 500; */
+}
+.ytf-card-back-footer .ytf-timestamp-link:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+  opacity: 1;
+}
+
+.ytf-card-back-footer .ytf-timestamp-link svg {
+  color: inherit;
+}
+
+/* --- Skeleton Loading Styles --- */
+
+.rd-skeleton {
+  background-color: #e2e8f0; /* A light grey */
+  border-radius: var(--radius-medium);
+  position: relative;
+  overflow: hidden;
+}
+
+/* The shimmer animation */
+.rd-skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Specific styles for different skeleton elements */
+.rd-skeleton-title {
+  height: 20px;
+  width: 70%;
+  margin-bottom: 8px;
+}
+
+.rd-skeleton-text {
+  height: 14px;
+  width: 90%;
+}
+
+.rd-skeleton-card {
+  width: 100%;
+  height: 80%;
+  position: absolute;
 }
