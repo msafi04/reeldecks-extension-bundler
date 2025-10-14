@@ -5,7 +5,6 @@ import App from "../App";
 
 import "../sidebar/Sidebar.css"; // Your main styles
 import "rc-slider/assets/index.css"; // For the slider
-// import "katex/dist/katex.min.css";
 
 console.log("ReelDecks DEV: Content script loaded and ready.");
 

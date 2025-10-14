@@ -1,10 +1,20 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+
+import { renderMath } from "../utils/mathRenderer";
 
 function CardContent({ content }) {
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    if (content && contentRef.current) {
+      const renderedHTML = renderMath(content);
+      contentRef.current.innerHTML = renderedHTML;
+    }
+  }, [content]);
+
   if (!content) return null;
-  // We render the raw content with the dollar signs.
-  // The script we inject later will find and replace them.
-  return <div dangerouslySetInnerHTML={{ __html: content }} />;
+
+  return <div ref={contentRef} />;
 }
 
 export default CardContent;

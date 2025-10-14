@@ -23,7 +23,7 @@ function CardViewSkeleton() {
         {/* Just one placeholder card is needed */}
         <div className="rd-skeleton rd-skeleton-card"></div>
       </div>
-      <div id="ytf-study-nav" className="ytf-study-nav">
+      {/* <div id="ytf-study-nav" className="ytf-study-nav">
         <div
           className="rd-skeleton"
           style={{ width: "40px", height: "40px", borderRadius: "50%" }}
@@ -36,7 +36,7 @@ function CardViewSkeleton() {
           className="rd-skeleton"
           style={{ width: "40px", height: "40px", borderRadius: "50%" }}
         ></div>
-      </div>
+      </div> */}
     </div>
   );
 }

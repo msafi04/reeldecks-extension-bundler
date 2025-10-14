@@ -28,11 +28,7 @@
     {
       "resources": [
         "icons/*.png",
-        "fonts/*.ttf",
-        "vendor/katex/katex.min.css",
-        "vendor/katex/katex.min.js",
-        "vendor/katex/contrib/auto-render.min.js",
-        "vendor/katex/fonts/*"
+        "fonts/*.ttf"
       ],
       "matches": [ "https://*.youtube.com/*" ]
     }

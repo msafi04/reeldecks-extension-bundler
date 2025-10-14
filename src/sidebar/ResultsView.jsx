@@ -5,6 +5,7 @@ import CardContent from "./CardContent";
 
 import { redirectToWebApp, logger } from "../utils/extension";
 import { themeOptions } from "../utils/options";
+import { useNotifier } from "../context/NotificationContext";
 
 const seekVideoTo = (seconds) => {
   const player = document.querySelector(".html5-main-video");
@@ -32,15 +33,10 @@ function StudyCard({
   isInFocusMode,
   toggleFocusMode,
 }) {
+  const notify = useNotifier();
+
   const [positionStyle, setPositionStyle] = useState({});
   const [showImage, setShowImage] = useState(false);
-
-  useEffect(() => {
-    // When the cards are displayed, send a message to the background
-    // to tell it to come and render the math.
-    logger.log("ResultsView mounted, requesting KaTeX render.");
-    chrome.runtime.sendMessage({ action: "executeKaTeXRender" });
-  }, [cardData]);
 
   useEffect(() => {
     const newStyle = {};
@@ -66,6 +62,28 @@ function StudyCard({
     }
   }, [isCurrent]);
 
+  const handleDoubleClickCopy = (e) => {
+    // Stop the event from bubbling up, just in case.
+    e.stopPropagation();
+
+    // Get the clean text content from the DOM element that was double-clicked.
+    const textToCopy = e.currentTarget.innerText;
+
+    if (textToCopy && textToCopy.trim().length > 0) {
+      navigator.clipboard
+        .writeText(textToCopy)
+        .then(() => {
+          // Success! Show a toast notification.
+          notify.success("Copied to clipboard!");
+        })
+        .catch((err) => {
+          // Handle potential errors (e.g., if browser permissions change).
+          notify.error("Could not copy text.");
+          logger.error("Clipboard write failed:", err);
+        });
+    }
+  };
+
   return (
     <div
       className="ytf-study-card"
@@ -75,7 +93,11 @@ function StudyCard({
       <div className="ytf-card-inner">
         <div className="ytf-card-front" style={cardStyle}>
           <div className="ytf-card-content-wrapper">
-            <div className="ytf-card-content">
+            <div
+              className="ytf-card-content"
+              onDoubleClick={handleDoubleClickCopy}
+            >
+              {/* <div dangerouslySetInnerHTML={{ __html: cardData.front }} /> */}
               <CardContent content={cardData.front} />
             </div>
             {isCurrent && (
@@ -131,8 +153,9 @@ function StudyCard({
             />
           ) : (
             <div className="ytf-card-content-wrapper">
-              <div className="ytf-card-content">
-                <div dangerouslySetInnerHTML={{ __html: cardData.back }} />
+              <div className="ytf-card-content" onDoubleClick={handleDoubleClickCopy}>
+                {/* <div dangerouslySetInnerHTML={{ __html: cardData.back }} /> */}
+                <CardContent content={cardData.back} />
               </div>
             </div>
           )}
@@ -254,120 +277,6 @@ function ResultsView({
   const [isInFocusMode, setIsInFocusMode] = useState(false);
 
   const containerRef = useRef(null);
-
-  // --- Effect for handling drag gestures ---
-  // useEffect(() => {
-  //   const container = containerRef.current;
-  //   if (!container) return;
-
-  //   const dragState = {
-  //     isDragging: false,
-  //     startX: 0,
-  //     currentX: 0,
-  //   };
-  //   let currentCardElement = null;
-
-  //   const dragStart = (e) => {
-  //     // At the start, we simply CHECK and REMEMBER if the drag began on the content area.
-  //     if (e.target.closest(".ytf-card-content, a, button")) {
-  //       return;
-  //     }
-
-  //     e.preventDefault();
-
-  //     dragState.isDragging = true;
-  //     dragState.startX = e.pageX || e.touches?.[0].pageX;
-  //     dragState.currentX = 0;
-
-  //     // Find the currently active card
-  //     currentCardElement = container.querySelector(
-  //       '.ytf-study-card[style*="opacity: 1"]'
-  //     );
-  //     if (currentCardElement) {
-  //       currentCardElement.classList.add("dragging");
-  //     }
-
-  //     document.addEventListener("mousemove", dragMove);
-  //     document.addEventListener("touchmove", dragMove);
-  //     document.addEventListener("mouseup", dragEnd);
-  //     document.addEventListener("touchend", dragEnd);
-  //   };
-
-  //   const dragMove = (e) => {
-  //     if (!dragState.isDragging || !currentCardElement) return;
-
-  //     const x = e.pageX || e.touches?.[0].pageX;
-  //     dragState.currentX = x - dragState.startX;
-
-  //     currentCardElement.style.transition = "none"; // Disable transition for smooth drag
-  //     currentCardElement.style.transform = `translateX(${
-  //       dragState.currentX
-  //     }px) rotate(${dragState.currentX / 20}deg)`;
-  //   };
-
-  //   const dragEnd = () => {
-  //     if (!dragState.isDragging) return;
-  //     dragState.isDragging = false;
-
-  //     // Clean up listeners immediately
-  //     document.removeEventListener("mousemove", dragMove);
-  //     document.removeEventListener("touchmove", dragMove);
-  //     document.removeEventListener("mouseup", dragEnd);
-  //     document.removeEventListener("touchend", dragEnd);
-
-  //     const dragDistance = Math.abs(dragState.currentX);
-  //     const swipeThreshold = 80;
-  //     const clickThreshold = 5;
-
-  //     if (dragDistance > swipeThreshold) {
-  //       if (dragState.currentX < 0) {
-  //         setCurrentCardIndex((prev) => Math.min(prev + 1, cards.length - 1));
-  //       } else {
-  //         setCurrentCardIndex((prev) => Math.max(prev - 1, 0));
-  //       }
-  //     } else if (dragDistance < clickThreshold) {
-  //       setIsFlipped((prev) => !prev);
-  //     }
-
-  //     if (currentCardElement) {
-  //       currentCardElement.classList.remove("dragging");
-  //       currentCardElement.style.transition = ""; // Re-enable transitions
-  //       currentCardElement.style.transform = ""; // Let React's style take over
-  //     }
-  //   };
-
-  //   // const handleClick = (e) => {
-  //   //   // Check if the user just finished a drag. If so, do nothing.
-  //   //   // The small distance check prevents a flip on a short, accidental drag.
-  //   //   const dragDistance = Math.abs(dragState.currentX);
-  //   //   if (dragDistance > 5) {
-  //   //     dragState.currentX = 0; // Reset for the next interaction
-  //   //     return;
-  //   //   }
-
-  //   //   // Ignore clicks on interactive elements
-  //   //   if (e.target.closest(".ytf-card-content, a, button")) return;
-
-  //   //   // If we got here, it was a true click on the card body
-  //   //   setIsFlipped((prev) => !prev);
-  //   // };
-
-  //   // Attach listeners
-  //   container.addEventListener("mousedown", dragStart);
-  //   container.addEventListener("touchstart", dragStart, { passive: true });
-
-  //   // Cleanup function to remove listeners when the component unmounts
-  //   return () => {
-  //     container.removeEventListener("mousedown", dragStart);
-  //     container.removeEventListener("touchstart", dragStart);
-
-  //     // Also clean up document listeners in case the component unmounts mid-drag
-  //     document.removeEventListener("mousemove", dragMove);
-  //     document.removeEventListener("touchmove", dragMove);
-  //     document.removeEventListener("mouseup", dragEnd);
-  //     document.removeEventListener("touchend", dragEnd);
-  //   };
-  // }, [cards, setCurrentCardIndex]);
 
   useEffect(() => {
     const container = containerRef.current;

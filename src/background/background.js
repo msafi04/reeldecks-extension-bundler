@@ -141,41 +141,6 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 });
 
 // Handle the icon click
-// chrome.action.onClicked.addListener(async (tab) => {
-//   if (tab.url && tab.url.includes("youtube.com/watch")) {
-//     logger.log("Icon clicked. Sending toggle command to content script...");
-
-//     chrome.action.setIcon({
-//       tabId: tab.id,
-//       path: {
-//         16: chrome.runtime.getURL("icons/icon16-pending.png"),
-//         32: chrome.runtime.getURL("icons/icon32-pending.png"),
-//       },
-//     });
-//     (async () => {
-//       try {
-//         // The content script is already injected by the manifest.
-//         // We just need to send it a message.
-//         await chrome.tabs.sendMessage(tab.id, {
-//           action: "toggle_sidebar",
-//         });
-//       } catch (error) {
-//         logger.error(
-//           "Could not send message to content script. It might not be ready.",
-//           error
-//         );
-//         // Reset the icon on failure
-//         await chrome.action.setIcon({
-//           tabId: tab.id,
-//           path: {
-//             16: chrome.runtime.getURL("icons/icon16.png"),
-//             32: chrome.runtime.getURL("icons/icon32.png"),
-//           },
-//         });
-//       }
-//     })();
-//   }
-// });
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id || !tab.url || !tab.url.includes("youtube.com/watch")) {
     return;
@@ -192,37 +157,55 @@ chrome.action.onClicked.addListener(async (tab) => {
     },
   });
 
-  const sendMessageToTab = async (tabId) => {
+  const sendMessageToTab = async (tabId, action) => {
     return chrome.tabs.sendMessage(tabId, {
-      action: "toggle_sidebar",
+      action: action,
     });
   };
 
-  try {
-    // First attempt
-    await sendMessageToTab(tab.id);
-    logger.log("Message sent successfully on first try.");
-  } catch (error) {
-    // This is our race condition!
-    if (error.message.includes("Receiving end does not exist")) {
-      logger.warn("Content script not ready. Retrying in a moment...");
+  // Retry mechanism
 
-      // Wait a fraction of a second
-      await delay(250);
+  const MAX_ATTEMPTS = 5;
+  let attempts = 0;
 
-      try {
-        // Second attempt
-        await sendMessageToTab(tab.id);
-        logger.log("Message sent successfully on second try.");
-      } catch (retryError) {
-        logger.error(
-          "Failed to send message on retry. The content script may have failed to load.",
-          retryError
-        );
-        alert(
-          "ReelDecks isn't ready yet. Please wait a moment for the page to finish loading and try again."
-        );
-        // On failure, reset the icon back to normal
+  while (attempts < MAX_ATTEMPTS) {
+    try {
+      await sendMessageToTab(tab.id, "toggle_sidebar");
+      logger.log(
+        `Successfully connected to content script on attempt ${attempts + 1}.`
+      );
+      return; // Success, exit the function
+    } catch (error) {
+      if (error.message.includes("Receiving end does not exist")) {
+        attempts++;
+        if (attempts < MAX_ATTEMPTS) {
+          const delayTime = 100 * Math.pow(2, attempts); // 200ms, 400ms, 800ms...
+          logger.warn(
+            `Content script not ready. Retrying in ${delayTime}ms... (Attempt ${attempts})`
+          );
+          await delay(delayTime);
+        } else {
+          // All retries failed
+          logger.error(
+            "Could not connect to content script after multiple attempts.",
+            error
+          );
+          alert(
+            "ReelDecks could not load. Please try refreshing the YouTube page."
+          );
+          // Reset the icon on final failure
+          await chrome.action.setIcon({
+            tabId: tab.id,
+            path: {
+              16: chrome.runtime.getURL("icons/icon16.png"),
+              32: chrome.runtime.getURL("icons/icon32.png"),
+            },
+          });
+          return; // Exit
+        }
+      } else {
+        // A different, unexpected error occurred
+        logger.error("An unexpected error occurred:", error);
         await chrome.action.setIcon({
           tabId: tab.id,
           path: {
@@ -230,12 +213,49 @@ chrome.action.onClicked.addListener(async (tab) => {
             32: chrome.runtime.getURL("icons/icon32.png"),
           },
         });
+        return; // Exit
       }
-    } else {
-      // Handle other potential errors
-      logger.error("An unexpected error occurred when sending message:", error);
     }
   }
+
+  // try {
+  //   // First attempt
+  //   await sendMessageToTab(tab.id);
+  //   logger.log("Message sent successfully on first try.");
+  // } catch (error) {
+  //   // This is our race condition!
+  //   if (error.message.includes("Receiving end does not exist")) {
+  //     logger.warn("Content script not ready. Retrying in a moment...");
+
+  //     // Wait a fraction of a second
+  //     await delay(250);
+
+  //     try {
+  //       // Second attempt
+  //       await sendMessageToTab(tab.id);
+  //       logger.log("Message sent successfully on second try.");
+  //     } catch (retryError) {
+  //       logger.error(
+  //         "Failed to send message on retry. The content script may have failed to load.",
+  //         retryError
+  //       );
+  //       alert(
+  //         "ReelDecks isn't ready yet. Please wait a moment for the page to finish loading and try again."
+  //       );
+  //       // On failure, reset the icon back to normal
+  //       await chrome.action.setIcon({
+  //         tabId: tab.id,
+  //         path: {
+  //           16: chrome.runtime.getURL("icons/icon16.png"),
+  //           32: chrome.runtime.getURL("icons/icon32.png"),
+  //         },
+  //       });
+  //     }
+  //   } else {
+  //     // Handle other potential errors
+  //     logger.error("An unexpected error occurred when sending message:", error);
+  //   }
+  // }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -617,6 +637,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                   { left: "\\(", right: "\\)", display: false },
                 ],
                 throwOnError: false,
+              });
+              // After renderMathInElement, clean up more aggressively
+              const walker = document.createTreeWalker(
+                renderTarget,
+                NodeFilter.SHOW_TEXT
+              );
+              let node;
+              const nodesToClean = [];
+              while ((node = walker.nextNode())) {
+                // Skip if inside a .katex element (already rendered)
+                if (!node.parentElement?.closest(".katex")) {
+                  if (node.nodeValue && /[\$\\]/.test(node.nodeValue)) {
+                    nodesToClean.push(node);
+                  }
+                }
+              }
+              nodesToClean.forEach((n) => {
+                n.nodeValue = n.nodeValue
+                  .replace(/\$\$/g, "")
+                  .replace(/\$/g, "")
+                  .replace(/\\[\[\]()]/g, ""); // Remove \[ \] \( \) delimiters too
               });
             } else {
               logger.error(

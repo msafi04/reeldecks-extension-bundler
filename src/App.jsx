@@ -131,6 +131,8 @@ function App() {
             logger.log(
               "State: New anonymous user. Fetching metadata for generation."
             );
+            setLoadingContext("metadata");
+            setCurrentView("loading");
             const metaResponse = await chrome.runtime.sendMessage({
               action: "getVideoMetadata",
               videoId: videoId,

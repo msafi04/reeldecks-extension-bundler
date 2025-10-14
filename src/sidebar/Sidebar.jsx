@@ -83,10 +83,13 @@ function Sidebar({
 
   const showDeckSelectionView = async () => {
     logger.log("Navigating to Deck Selection, fetching fresh list...");
-    setLoadingContext('decks');
+    setLoadingContext("decks");
     setCurrentView("loading");
     try {
       const videoId = new URLSearchParams(window.location.search).get("v");
+      // Add a small artificial delay to prevent the flicker on instant-fail network errors
+      await new Promise((res) => setTimeout(res, 50));
+
       const deckResponse = await chrome.runtime.sendMessage({
         action: "checkDeckExists",
         videoId: videoId,
@@ -105,7 +108,8 @@ function Sidebar({
     } catch (err) {
       logger.error("Failed to fetch deck list:", err);
       // Fallback to the choice screen on error
-      setCurrentView("initialChoice");
+      // setCurrentView("initialChoice");
+      setCurrentView("error");
     }
   };
 
@@ -265,9 +269,6 @@ function Sidebar({
   };
 
   const renderContent = () => {
-    logger.log(
-      `renderContent called. currentView: ${currentView}, loadingContext: ${loadingContext}`
-    );
     switch (currentView) {
       case "loading":
         if (loadingContext === "decks") {
@@ -275,6 +276,14 @@ function Sidebar({
         }
         if (loadingContext === "cards") {
           return <CardViewSkeleton />;
+        }
+        if (loadingContext === "metadata" || loadingContext === "form") {
+          return (
+            <div id="ytf-loading-state">
+              <div className="ytf-loader"></div>
+              <p className="ytf-loading-text">Analyzing video details...</p>
+            </div>
+          );
         }
         return (
           <div id="ytf-loading-state">
@@ -538,7 +547,7 @@ function Sidebar({
         return (
           <StatusView
             icon="😢"
-            title="Something Went Wrong"
+            title="Connection Failed!"
             message="We couldn't load the necessary data. Please check your connection and try again."
             onRetry={onRetry}
           />
