@@ -153,7 +153,10 @@ function StudyCard({
             />
           ) : (
             <div className="ytf-card-content-wrapper">
-              <div className="ytf-card-content" onDoubleClick={handleDoubleClickCopy}>
+              <div
+                className="ytf-card-content"
+                onDoubleClick={handleDoubleClickCopy}
+              >
                 {/* <div dangerouslySetInnerHTML={{ __html: cardData.back }} /> */}
                 <CardContent content={cardData.back} />
               </div>
@@ -406,11 +409,17 @@ function ResultsView({
         background: `linear-gradient(45deg, ${theme.colors[0]}, ${theme.colors[1]})`,
         color: theme.textColor,
       };
+    } else if (theme.type === "icon") {
+      return { backgroundColor: theme.colors[0], color: "#111827" };
+    } else if (theme.type === "pattern") {
+      return {
+        background: `linear-gradient(45deg, ${theme.colors[0]}, ${theme.colors[1]})`,
+        color: theme.textColor,
+      };
     }
-    // Add other theme types (icon, pattern) here if needed
 
     // Fallback default style
-    return { backgroundColor: "#FFFFFF", color: "#111827" };
+    return { backgroundColor: "#FFFFFF", color: theme.textColor };
   }, [currentDeckData?.deckTheme]);
 
   const goToNext = () => {

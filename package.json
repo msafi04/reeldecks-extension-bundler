@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "markdown-to-jsx": "^7.7.15",
     "mathjax-full": "^3.2.2",
     "rc-slider": "^11.1.9",
     "react": "^19.1.1",

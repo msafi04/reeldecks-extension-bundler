@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Slider from "rc-slider";
 
 import { getOrCreateAnonymousId, logger } from "../utils/extension";
@@ -19,7 +19,6 @@ function GenerationForm({
   onBack,
   existingDeckId,
 }) {
-
   const [cardType, setCardType] = useState(
     videoMetadata?.contentTypeOptions?.suggested?.[0]?.value || "summary"
   );
@@ -116,6 +115,30 @@ function GenerationForm({
     }
   }, [timeRange, videoMetadata]);
 
+  const maxCardsForSlider = useMemo(() => {
+    const selectedDuration = timeRange[1] - timeRange[0];
+    if (!selectedDuration || selectedDuration <= 0) {
+      return 10; // A safe minimum
+    }
+    // Your logic: approx 1 card per 45 seconds
+    const rawMax = selectedDuration / 75;
+    const step = 5;
+    // Round up to the nearest multiple of 5
+    const roundedMax = Math.ceil(rawMax / step) * step;
+    // Clamp the value between a sensible min (10) and a hard max (e.g., 50 for extensions)
+    return Math.min(Math.max(roundedMax, 10), 50);
+  }, [timeRange]);
+
+  const quantityMarks = useMemo(() => {
+    const marks = {};
+    for (let i = 5; i <= maxCardsForSlider; i += 5) {
+      marks[i] = i;
+    }
+    return marks;
+  }, [maxCardsForSlider]);
+
+  console.log(cardQuantity, maxCardsForSlider)
+
   return (
     <div id="ytf-initial-state">
       <div className="ytf-view-header">
@@ -166,7 +189,7 @@ function GenerationForm({
         </div>
 
         {/* Card Quantity */}
-        <div className="ytf-option-group">
+        {/* <div className="ytf-option-group">
           <label>Max Number of Cards</label>
           <div
             id="ytf-card-quantity-selector"
@@ -199,6 +222,24 @@ function GenerationForm({
               onChange={(e) => setCardQuantity(e.target.value)}
             />
             <label htmlFor="qty-15">15</label>
+          </div>
+        </div> */}
+        <div className="ytf-option-group">
+          <label>Number of Cards</label>
+          <div
+            className="ytf-slider-container"
+            style={{ padding: "15px 10px" }}
+          >
+            <Slider
+              className="ytf-quantity-slider"
+              min={5}
+              max={maxCardsForSlider}
+              step={5}
+              marks={quantityMarks}
+              value={cardQuantity}
+              onChange={(newValue) => setCardQuantity(newValue)}
+              dots={true}
+            />
           </div>
         </div>
 
@@ -245,7 +286,11 @@ function GenerationForm({
         </div>
       )}
 
-      <button className="ytf-generate-btn" onClick={handleGenerateClick}>
+      <button
+        className="ytf-generate-btn"
+        onClick={handleGenerateClick}
+        disabled={isGenerateDisabled}
+      >
         Generate Flashcards
       </button>
     </div>

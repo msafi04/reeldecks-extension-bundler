@@ -1442,3 +1442,44 @@
 #yt-flashcards-sidebar .rc-slider-tooltip-arrow {
     border-top-color: #282828 !important;
 }
+
+/* --- Custom Styles for Quantity Slider --- */
+
+/* Target the rail of our specific slider */
+.ytf-quantity-slider .rc-slider-rail {
+  height: 8px; /* <-- Make the bar thicker */
+  border-radius: 4px;
+}
+
+/* Target the track of our specific slider */
+.ytf-quantity-slider .rc-slider-track {
+  height: 8px; /* <-- Make the track thicker */
+  border-radius: 4px;
+}
+
+/* Make the step dots more prominent */
+.ytf-quantity-slider .rc-slider-dot {
+  width: 8px;
+  height: 8px;
+  bottom: -4px;
+  /* margin-left: -4px; */
+  border-color: #e0e0e0;
+  background-color: #fff;
+}
+
+.ytf-quantity-slider .rc-slider-dot-active {
+  border-color: #FF0000;
+}
+
+/* Optional: Make the handle slightly larger if desired */
+.ytf-quantity-slider .rc-slider-handle {
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+}
+
+/* Style the mark labels */
+.ytf-quantity-slider .rc-slider-mark-text {
+  font-size: 13px;
+  color: #606060;
+}

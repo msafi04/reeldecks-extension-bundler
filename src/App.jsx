@@ -12,7 +12,6 @@ function App() {
 
   const [currentView, setCurrentView] = useState("loading"); // 'loading', 'initial', 'results', etc.
   const [videoMetadata, setVideoMetadata] = useState(null);
-  const [error, setError] = useState(null);
 
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [existingDecks, setExistingDecks] = useState([]);

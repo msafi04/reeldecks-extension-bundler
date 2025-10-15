@@ -277,7 +277,15 @@ function Sidebar({
         if (loadingContext === "cards") {
           return <CardViewSkeleton />;
         }
-        if (loadingContext === "metadata" || loadingContext === "form") {
+        if (loadingContext === "metadata") {
+          return (
+            <div id="ytf-loading-state">
+              <div className="ytf-loader"></div>
+              <p className="ytf-loading-text">Fetching video metadata...</p>
+            </div>
+          );
+        }
+        if (loadingContext === "form") {
           return (
             <div id="ytf-loading-state">
               <div className="ytf-loader"></div>
