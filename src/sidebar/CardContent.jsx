@@ -1,34 +1,41 @@
 import React, { useEffect, useRef } from "react";
 import { renderToString } from "react-dom/server";
 
-import Markdown from "markdown-to-jsx";
+import { marked } from "marked";
 
 import { renderMath } from "../utils/mathRenderer";
-
-const MarkdownRenderer = ({ content }) => (
-  <Markdown
-    options={{
-      overrides: {
-        a: { props: { target: "_blank", rel: "noopener noreferrer" } },
-      },
-    }}
-  >
-    {content}
-  </Markdown>
-);
 
 function CardContent({ content }) {
   const contentRef = useRef(null);
 
   useEffect(() => {
     if (content && contentRef.current) {
-      const markdownHtml = renderToString(
-        <MarkdownRenderer content={content} />
+      // Step 1: Protect math expressions
+      const mathPlaceholders = [];
+      const protectedContent = content.replace(
+        /\$\$[\s\S]+?\$\$|\$.+?\$/g,
+        (match) => {
+          const placeholder = `MATH_PLACEHOLDER_${mathPlaceholders.length}_MATH`;
+          mathPlaceholders.push(match);
+          return placeholder;
+        }
       );
-      console.log(markdownHtml);
-      const finalHtml = renderMath(markdownHtml);
+
+      // Step 2: Render markdown (simple string operation)
+      const markdownHtml = marked.parse(protectedContent);
+
+      // Step 3: Restore math expressions
+      let restoredHtml = markdownHtml;
+      mathPlaceholders.forEach((math, index) => {
+        restoredHtml = restoredHtml.replace(
+          `MATH_PLACEHOLDER_${index}_MATH`,
+          math
+        );
+      });
+
+      // Step 4: Render math
+      const finalHtml = renderMath(restoredHtml);
       contentRef.current.innerHTML = finalHtml;
-      console.log(finalHtml);
     }
   }, [content]);
 

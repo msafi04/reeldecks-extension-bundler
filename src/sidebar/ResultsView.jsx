@@ -28,6 +28,7 @@ function StudyCard({
   cardData,
   isCurrent,
   isNext,
+  isPrev,
   isFlipped,
   cardStyle,
   isInFocusMode,
@@ -45,13 +46,17 @@ function StudyCard({
       newStyle.zIndex = 10;
       newStyle.transform = isFlipped ? "rotateY(180deg)" : "";
     } else if (isNext) {
-      positionStyle.opacity = 0.7;
+      // newStyle.opacity = 0.7;
       positionStyle.zIndex = 9;
       positionStyle.transform = "scale(0.95) translateY(15px)";
+    } else if (isPrev) {
+      // newStyle.opacity = 0.4;
+      newStyle.zIndex = 8; // Below the 'next' card
+      newStyle.transform = "scale(0.9) translateY(30px)";
     } else {
-      positionStyle.opacity = 0;
-      positionStyle.zIndex = 8;
-      positionStyle.transform = "scale(0.9) translateY(30px)";
+      newStyle.opacity = 0;
+      newStyle.zIndex = 7;
+      newStyle.transform = "scale(0.85) translateY(45px)";
     }
     setPositionStyle(newStyle);
   }, [isCurrent, isNext, isFlipped]);
@@ -540,6 +545,7 @@ function ResultsView({
             cardData={card}
             isCurrent={index === currentCardIndex}
             isNext={index === currentCardIndex + 1}
+            isPrev={index === currentCardIndex - 1}
             isFlipped={index === currentCardIndex && isFlipped}
             cardStyle={cardStyle}
             isInFocusMode={isInFocusMode}

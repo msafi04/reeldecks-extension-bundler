@@ -466,6 +466,36 @@
 
 .ytf-study-card.is-flipped { transform: rotateY(180deg); }
 
+/* 
+  Now, we specifically target the card faces of the cards BEHIND the current one.
+  The .ytf-study-card containers for these cards have a lower z-index.
+*/
+.ytf-study-card[style*="z-index: 9"] .ytf-card-front,
+.ytf-study-card[style*="z-index: 9"] .ytf-card-back,
+.ytf-study-card[style*="z-index: 8"] .ytf-card-front,
+.ytf-study-card[style*="z-index: 8"] .ytf-card-back {
+  /* 
+    Instead of using opacity, we apply a semi-transparent overlay.
+    This pseudo-element sits on top of the card's themed background.
+  */
+  position: relative; /* Needed for the pseudo-element */
+}
+
+.ytf-study-card[style*="z-index: 9"] .ytf-card-front::before,
+.ytf-study-card[style*="z-index: 9"] .ytf-card-back::before,
+.ytf-study-card[style*="z-index: 8"] .ytf-card-front::before,
+.ytf-study-card[style*="z-index: 8"] .ytf-card-back::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.4); /* A white overlay with 40% opacity */
+  border-radius: var(--radius-large);
+  z-index: 1; /* Sit on top of the card's background */
+}
+
 .ytf-card-inner {
   position: relative;
   width: 100%;
@@ -504,6 +534,8 @@
   width: 100%;
   padding: 20px 15px 0 15px; /* Padding on top, left, right. NO bottom padding. */
   box-sizing: border-box;
+   position: relative;
+  z-index: 2;
 }
 
 .ytf-card-content {
