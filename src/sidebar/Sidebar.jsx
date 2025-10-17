@@ -412,6 +412,7 @@ function Sidebar({
             onCardSave={handleSaveNewCard}
             onCancel={() => setCurrentView("results")}
             isContinuousMode={isContinuousAddMode}
+            currentDeckId={currentDeckData._id}
           />
         );
       case "signup":

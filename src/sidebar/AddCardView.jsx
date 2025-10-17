@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
 import { logger } from "../utils/extension";
+import { useNotifier } from "../context/NotificationContext";
 
 // Helper to get video time
 const getCurrentVideoTime = () => {
@@ -16,7 +17,14 @@ const formatTimeForDisplay = (totalSeconds) => {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
 
-function AddCardView({ onCardSave, onCancel, isContinuousMode }) {
+function AddCardView({
+  onCardSave,
+  onCancel,
+  isContinuousMode,
+  currentDeckId,
+}) {
+  const notify = useNotifier();
+
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const [timestamp, setTimestamp] = useState(0);
@@ -24,6 +32,8 @@ function AddCardView({ onCardSave, onCancel, isContinuousMode }) {
 
   const [saveState, setSaveState] = useState("idle"); // 'idle', 'saving', 'saved'
   const [recentlyAdded, setRecentlyAdded] = useState([]);
+
+  const [isAskingAI, setIsAskingAI] = useState(false);
 
   const intervalRef = useRef(null);
 
@@ -144,6 +154,66 @@ function AddCardView({ onCardSave, onCancel, isContinuousMode }) {
     setScreenshotDataUrl(null);
   };
 
+  const handleAskAiForAnswer = async () => {
+    const minLength = 10;
+    const frontText = front.trim();
+
+    if (frontText.length === 0) {
+      notify.error("Please enter a question in the 'Front' field first.");
+      return;
+    }
+
+    if (frontText.length < minLength) {
+      notify.error(
+        `Please enter a more specific question (at least ${minLength} characters).`
+      );
+      return;
+    }
+
+    setIsAskingAI(true);
+    notify.info("Asking AI for an answer...", 1000);
+
+    try {
+      const videoId = new URLSearchParams(window.location.search).get("v");
+
+      const payload = {
+        deckId: currentDeckId,
+        videoId: videoId,
+        timestamp: timestamp,
+        cardFront: frontText,
+      };
+
+      // We'll add the background script handler in the next step.
+      // For now, let's mock the response.
+      logger.log("Sending AI Assist payload:", payload);
+      // const response = await chrome.runtime.sendMessage({ action: "aiAssistAnswer", payload });
+
+      // MOCK RESPONSE FOR TESTING:
+      await new Promise((res) => setTimeout(res, 2000)); // Simulate network delay
+      const response = {
+        isRelevant: false,
+        suggestedBack: "The AI-generated answer text.",
+      };
+      // END MOCK
+
+      if (response.error) throw new Error(response.error);
+
+      if (response.isRelevant) {
+        setBack(response.suggestedBack);
+        notify.success("AI answer generated!");
+      } else {
+        setBack("");
+        // Show a different, more informative notification.
+        notify.info("The AI couldn't find a direct answer in the video.", 4000); // Show for 4s
+      }
+    } catch (err) {
+      logger.error("AI Assist failed:", err);
+      notify.error(err.message || "An unknown error occurred.");
+    } finally {
+      setIsAskingAI(false);
+    }
+  };
+
   const getButtonText = () => {
     if (saveState === "saving") return "Saving...";
     if (saveState === "saved") return "Saved ✓";
@@ -165,13 +235,49 @@ function AddCardView({ onCardSave, onCancel, isContinuousMode }) {
           ></textarea>
         </div>
         <div className="ytf-form-group">
-          <label htmlFor="ytf-custom-card-back">Back / Note</label>
+          {/* <label htmlFor="ytf-custom-card-back">Back / Note</label> */}
+          <div className="ytf-form-label-group">
+            <label htmlFor="ytf-custom-card-back">Back / Note</label>
+            <button
+              className="ytf-ai-assist-btn"
+              onClick={handleAskAiForAnswer}
+              disabled={!front.trim() || isAskingAI}
+              title="Generate answer with AI"
+            >
+              {isAskingAI ? (
+                <div className="ytf-small-spinner"></div>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="#FF0000"
+                      d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25z"
+                    />
+                    <path
+                      fill="#FF0000"
+                      d="M19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25z"
+                    />
+                    <path
+                      fill="#FF0000"
+                      d="M11.5 9.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12z"
+                    />
+                  </svg>
+                  <span>Ask AI</span>
+                </>
+              )}
+            </button>
+          </div>
           <textarea
             id="ytf-custom-card-back"
             rows="5"
             value={back}
             onChange={(e) => setBack(e.target.value)}
-            placeholder="Enter answer..."
+            placeholder="Enter answer or click 'Ask AI'..."
           ></textarea>
         </div>
         <div className="ytf-form-group">
@@ -273,6 +379,7 @@ function AddCardView({ onCardSave, onCancel, isContinuousMode }) {
             </div>
           )}
         </div>
+        {/* Add recentlt added for continuus mode */}
       </div>
       <div className="ytf-form-actions">
         <button
@@ -286,7 +393,7 @@ function AddCardView({ onCardSave, onCancel, isContinuousMode }) {
           id="ytf-save-card-btn"
           className="ytf-primary-action-btn"
           onClick={handleSave}
-          disabled={saveState === "saving"}
+          disabled={saveState === "saving" || isAskingAI}
         >
           {getButtonText()}
         </button>

@@ -45,21 +45,26 @@ function StudyCard({
       newStyle.opacity = 1;
       newStyle.zIndex = 10;
       newStyle.transform = isFlipped ? "rotateY(180deg)" : "";
+      newStyle.pointerEvents = "auto";
     } else if (isNext) {
-      // newStyle.opacity = 0.7;
-      positionStyle.zIndex = 9;
-      positionStyle.transform = "scale(0.95) translateY(15px)";
+      newStyle.opacity = 0.9;
+      newStyle.zIndex = 5;
+      newStyle.transform = "scale(0.95) translateY(15px)";
+      newStyle.pointerEvents = "none";
     } else if (isPrev) {
-      // newStyle.opacity = 0.4;
-      newStyle.zIndex = 8; // Below the 'next' card
-      newStyle.transform = "scale(0.9) translateY(30px)";
+      newStyle.opacity = 0.9;
+      newStyle.zIndex = 5; 
+      newStyle.transform = "scale(0.95) translateY(15px)";
+      newStyle.pointerEvents = "none";
     } else {
       newStyle.opacity = 0;
-      newStyle.zIndex = 7;
+      newStyle.zIndex = 1;
       newStyle.transform = "scale(0.85) translateY(45px)";
+      newStyle.pointerEvents = "none";
+      newStyle.display = "none";
     }
     setPositionStyle(newStyle);
-  }, [isCurrent, isNext, isFlipped]);
+  }, [isCurrent, isNext, isPrev, isFlipped]);
 
   useEffect(() => {
     if (!isCurrent) {
@@ -167,11 +172,6 @@ function StudyCard({
               </div>
             </div>
           )}
-          {/* <div className="ytf-card-content-wrapper">
-            <div className="ytf-card-content">
-              <CardContent content={cardData.back} />
-            </div>
-          </div> */}
           <div className="ytf-card-back-footer">
             <div className="footer-col left"></div>
             <div className="footer-col center">
@@ -580,13 +580,6 @@ function ResultsView({
               id="ytf-flip-btn"
               className="ytf-icon-btn ytf-nav-btn"
               title="Flip Card"
-              // onClick={() => {
-              //   // A bit of a trick to force re-render on the current card to flip it
-              //   const cardComponent = document.querySelector(
-              //     `.ytf-study-card[style*="opacity: 1"]`
-              //   );
-              //   if (cardComponent) cardComponent.click();
-              // }}
               onClick={() => setIsFlipped((prev) => !prev)}
             >
               <svg

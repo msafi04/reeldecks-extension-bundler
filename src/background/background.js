@@ -589,88 +589,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     })();
     return true;
-  } else if (request.action === "executeKaTeXRender") {
-    logger.log("Background received 'executeKaTeXRender' message.");
-    const tabId = sender.tab.id;
+  } else if (request.action === "aiAssistAnswer") {
+    logger.log(
+      "Background received 'aiAssistAnswer' message: ",
+      request.deckId
+    );
 
     (async () => {
       try {
-        const checkResults = await chrome.scripting.executeScript({
-          target: { tabId },
-          world: "MAIN",
-          func: () => typeof window.renderMathInElement === "function",
+        const result = await authenticatedFetch("/generate/askAi", {
+          method: "POST",
+          body: JSON.stringify(request.payload),
         });
 
-        if (!checkResults[0].result) {
-          logger.log("BG: KaTeX auto-render not found. Injecting libraries...");
-          // Inject BOTH katex.min.js and auto-render.min.js
-          await chrome.scripting.executeScript({
-            target: { tabId },
-            files: [
-              "vendor/katex/katex.min.js",
-              "vendor/katex/contrib/auto-render.min.js",
-            ],
-            world: "MAIN",
-          });
-        }
-
-        logger.log(
-          "BG: KaTeX is ready. Triggering auto-render on the container..."
-        );
-
-        // STEP 2: Call the auto-render function on our specific sidebar container
-        await chrome.scripting.executeScript({
-          target: { tabId },
-          world: "MAIN",
-          func: () => {
-            const renderTarget = document.getElementById(
-              "reeldecks-react-root"
-            );
-            if (renderTarget && typeof renderMathInElement === "function") {
-              // This function correctly finds the delimiters and replaces ONLY the math,
-              // avoiding the extra <span> wrapper issue.
-              renderMathInElement(renderTarget, {
-                delimiters: [
-                  { left: "$$", right: "$$", display: true },
-                  { left: "$", right: "$", display: false },
-                  { left: "\\[", right: "\\]", display: true },
-                  { left: "\\(", right: "\\)", display: false },
-                ],
-                throwOnError: false,
-              });
-              // After renderMathInElement, clean up more aggressively
-              const walker = document.createTreeWalker(
-                renderTarget,
-                NodeFilter.SHOW_TEXT
-              );
-              let node;
-              const nodesToClean = [];
-              while ((node = walker.nextNode())) {
-                // Skip if inside a .katex element (already rendered)
-                if (!node.parentElement?.closest(".katex")) {
-                  if (node.nodeValue && /[\$\\]/.test(node.nodeValue)) {
-                    nodesToClean.push(node);
-                  }
-                }
-              }
-              nodesToClean.forEach((n) => {
-                n.nodeValue = n.nodeValue
-                  .replace(/\$\$/g, "")
-                  .replace(/\$/g, "")
-                  .replace(/\\[\[\]()]/g, ""); // Remove \[ \] \( \) delimiters too
-              });
-            } else {
-              logger.error(
-                "KaTeX: Could not find target element or render function."
-              );
-            }
-          },
-        });
-
-        sendResponse({ status: "success" });
-      } catch (err) {
-        logger.error("Failed to execute KaTeX script:", err);
-        sendResponse({ status: "failure", error: err.message });
+        sendResponse(result);
+      } catch (error) {
+        logger.error("Background script aiAssistAnswer error:", error);
+        sendResponse({ error: error.message });
       }
     })();
     return true;
