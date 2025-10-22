@@ -45,23 +45,23 @@ function StudyCard({
       newStyle.opacity = 1;
       newStyle.zIndex = 10;
       newStyle.transform = isFlipped ? "rotateY(180deg)" : "";
-      newStyle.pointerEvents = "auto";
+      // newStyle.pointerEvents = "auto";
     } else if (isNext) {
       newStyle.opacity = 0.9;
       newStyle.zIndex = 5;
       newStyle.transform = "scale(0.95) translateY(15px)";
-      newStyle.pointerEvents = "none";
+      // newStyle.pointerEvents = "none";
     } else if (isPrev) {
       newStyle.opacity = 0.9;
-      newStyle.zIndex = 5; 
+      newStyle.zIndex = 5;
       newStyle.transform = "scale(0.95) translateY(15px)";
-      newStyle.pointerEvents = "none";
+      // newStyle.pointerEvents = "none";
     } else {
       newStyle.opacity = 0;
       newStyle.zIndex = 1;
       newStyle.transform = "scale(0.85) translateY(45px)";
-      newStyle.pointerEvents = "none";
-      newStyle.display = "none";
+      // newStyle.pointerEvents = "none";
+      // newStyle.display = "none";
     }
     setPositionStyle(newStyle);
   }, [isCurrent, isNext, isPrev, isFlipped]);
@@ -179,6 +179,7 @@ function StudyCard({
                 <a
                   className="ytf-timestamp-link"
                   title="Go to this moment in the video"
+                  onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     seekVideoTo(cardData.timestamp);
@@ -212,6 +213,7 @@ function StudyCard({
                 <button
                   className="ytf-image-toggle-btn"
                   title={showImage ? "Show Text" : "Show Screenshot"}
+                  onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent the card from flipping
                     setShowImage((prev) => !prev);
@@ -280,6 +282,7 @@ function ResultsView({
   isUserLoggedIn,
   isNotionConnected,
   isProUser,
+  setIsShareModalOpen,
 }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isInFocusMode, setIsInFocusMode] = useState(false);
@@ -302,15 +305,29 @@ function ResultsView({
       // --- THE GOLDEN RULE ---
       // If the interaction starts on a selectable or clickable element, ignore it completely.
       // This lets text selection and link clicks work naturally.
-      if (e.target.closest(".ytf-card-content, a, button")) {
+      // if (e.target.closest(".ytf-card-content, a, button")) {
+      //   return;
+      // }
+      // Only prevent default for mouse events (not needed for touch with passive listener)
+      // if (e.type === "mousedown") {
+      //   e.preventDefault();
+      // }
+
+      const target = e.target;
+      const tagName = target.tagName.toLowerCase();
+
+      // Directly check the element that was clicked
+      if (tagName === "a" || tagName === "button" || tagName === "input") {
         return;
       }
 
-      // If we're here, it's a valid interaction with the card body.
-      e.preventDefault(); // Prevent default browser drag behavior.
+      // Check if it's a child of these elements
+      if (target.closest("a") || target.closest("button")) {
+        return;
+      }
 
       interaction.isInteracting = true;
-      interaction.startX = e.pageX || e.touches?.[0].pageX;
+      interaction.startX = e.clientX || e.touches?.[0].pageX;
       interaction.currentX = 0;
 
       currentCardElement = container.querySelector(
@@ -318,19 +335,18 @@ function ResultsView({
       );
       if (currentCardElement) {
         currentCardElement.classList.add("dragging");
+        // Add listeners to the document to track movement anywhere on the page.
+        document.addEventListener("mousemove", handleInteractionMove);
+        document.addEventListener("touchmove", handleInteractionMove);
+        document.addEventListener("mouseup", handleInteractionEnd);
+        document.addEventListener("touchend", handleInteractionEnd);
       }
-
-      // Add listeners to the document to track movement anywhere on the page.
-      document.addEventListener("mousemove", handleInteractionMove);
-      document.addEventListener("touchmove", handleInteractionMove);
-      document.addEventListener("mouseup", handleInteractionEnd);
-      document.addEventListener("touchend", handleInteractionEnd);
     };
 
     const handleInteractionMove = (e) => {
       if (!interaction.isInteracting || !currentCardElement) return;
 
-      const x = e.pageX || e.touches?.[0].pageX;
+      const x = e.clientX || e.touches?.[0].pageX;
       interaction.currentX = x - interaction.startX;
 
       // Apply visual transform directly for performance.
@@ -378,9 +394,7 @@ function ResultsView({
 
     // Attach the starting listener.
     container.addEventListener("mousedown", handleInteractionStart);
-    container.addEventListener("touchstart", handleInteractionStart, {
-      passive: true,
-    });
+    container.addEventListener("touchstart", handleInteractionStart);
 
     // Cleanup function to remove all listeners when the component unmounts.
     return () => {
@@ -640,12 +654,39 @@ function ResultsView({
                 )}
               </span>
             </button>
+            {/* --- NEW SHARE BUTTON --- */}
+            {/* {isUserLoggedIn && isProUser && (
+              <button
+                id="ytf-share-btn"
+                className="ytf-primary-action-btn" // Re-use the icon button style
+                title="Share Deck"
+                onClick={() => setIsShareModalOpen(true)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                  <polyline points="16 6 12 2 8 6"></polyline>
+                  <line x1="12" y1="2" x2="12" y2="15"></line>
+                </svg>
+                <span>Share Deck</span>
+              </button>
+            )} */}
             {isUserLoggedIn && (
               <ExportDropdown
                 isUserLoggedIn={isUserLoggedIn}
                 isProUser={isProUser}
                 isNotionConnected={isNotionConnected}
                 currentDeckData={currentDeckData}
+                setIsShareModalOpen={setIsShareModalOpen}
               />
             )}
           </div>

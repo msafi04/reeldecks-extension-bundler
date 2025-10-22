@@ -1219,7 +1219,7 @@
 #ytf-card-deck-container {
   /* Animate these properties over 0.35s with a smooth curve */
   transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-              padding-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* When the container has the 'is-focused' class... */
@@ -1319,6 +1319,7 @@
   color: inherit; /* <-- Inherit color from the card's theme */
   text-decoration: none;
   font-size: 13px;
+  cursor: pointer;
   /* font-weight: 500; */
 }
 .ytf-card-back-footer .ytf-timestamp-link:hover {
@@ -1531,4 +1532,88 @@
   border-top-color: #333;
   border-radius: 50%;
   animation: ytf-spin 0.8s linear infinite;
+}
+
+.ytf-study-card a,
+.ytf-study-card button {
+  cursor: pointer !important;
+}
+
+/* --- Modal Styles --- */
+.ytf-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ytf-modal-content {
+  background: #282828; /* Or your sidebar's background color */
+  color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 320px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.ytf-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.ytf-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.ytf-modal-close-btn {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.ytf-modal-body p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.ytf-share-link-container {
+  display: flex;
+  gap: 8px;
+}
+
+.ytf-share-link-container input {
+  flex-grow: 1;
+  background: #333;
+  border: 1px solid #555;
+  color: #eee;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ytf-share-link-container button {
+  background: #4a4a4a;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
 }

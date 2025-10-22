@@ -609,6 +609,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     })();
     return true;
+  } else if (request.action === "makeDeckPublic") {
+    logger.log(
+      "Background received 'makeDeckPublic' message: ",
+      request.deckId
+    );
+
+    (async () => {
+      try {
+        const result = await authenticatedFetch("/decks/make-deck-public", {
+          method: "PATCH",
+          body: JSON.stringify(request.payload),
+        });
+
+        sendResponse(result);
+      } catch (error) {
+        logger.error("Background script makeDeckPublic error:", error);
+        sendResponse({ error: error.message });
+      }
+    })();
+    return true;
   }
 });
 

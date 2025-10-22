@@ -235,8 +235,8 @@ function AddCardView({
           ></textarea>
         </div>
         <div className="ytf-form-group">
-          {/* <label htmlFor="ytf-custom-card-back">Back / Note</label> */}
-          <div className="ytf-form-label-group">
+          <label htmlFor="ytf-custom-card-back">Back / Note</label>
+          {/*<div className="ytf-form-label-group">
             <label htmlFor="ytf-custom-card-back">Back / Note</label>
             <button
               className="ytf-ai-assist-btn"
@@ -271,13 +271,13 @@ function AddCardView({
                 </>
               )}
             </button>
-          </div>
+          </div> */}
           <textarea
             id="ytf-custom-card-back"
             rows="5"
             value={back}
             onChange={(e) => setBack(e.target.value)}
-            placeholder="Enter answer or click 'Ask AI'..."
+            placeholder="Enter answer'..."
           ></textarea>
         </div>
         <div className="ytf-form-group">

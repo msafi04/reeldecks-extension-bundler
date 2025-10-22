@@ -16,6 +16,8 @@ import {
   NotificationContainer,
 } from "../context/NotificationContext";
 
+import ShareDeckModal from "./ShareDeckModal";
+
 function Sidebar({
   isProUser,
   currentView,
@@ -42,6 +44,8 @@ function Sidebar({
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
   const [isContinuousAddMode, setIsContinuousAddMode] = useState(false);
+
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Reset index when decks change
   useEffect(() => {
@@ -404,6 +408,7 @@ function Sidebar({
             currentCardIndex={currentCardIndex}
             setCurrentCardIndex={setCurrentCardIndex}
             currentDeckData={currentDeckData}
+            setIsShareModalOpen={setIsShareModalOpen}
           />
         );
       case "addCard":
@@ -620,6 +625,12 @@ function Sidebar({
       </div>
       <div className="ytf-sidebar-content">{renderContent()}</div>
       <NotificationContainer />
+      {isShareModalOpen && currentDeckData && (
+        <ShareDeckModal
+          deck={currentDeckData}
+          onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
