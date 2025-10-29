@@ -54,7 +54,8 @@ function Sidebar({
 
   const handleGenerate = (payload) => {
     logger.log("Starting generation with payload:");
-    setCurrentView("loading"); // Show spinner while generating
+    setLoadingContext("cards"); // show cards skeleton
+    setCurrentView("loading");
 
     chrome.runtime
       .sendMessage({ action: "generateFlashcards", payload: payload })

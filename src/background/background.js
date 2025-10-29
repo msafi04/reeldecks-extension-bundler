@@ -217,45 +217,6 @@ chrome.action.onClicked.addListener(async (tab) => {
       }
     }
   }
-
-  // try {
-  //   // First attempt
-  //   await sendMessageToTab(tab.id);
-  //   logger.log("Message sent successfully on first try.");
-  // } catch (error) {
-  //   // This is our race condition!
-  //   if (error.message.includes("Receiving end does not exist")) {
-  //     logger.warn("Content script not ready. Retrying in a moment...");
-
-  //     // Wait a fraction of a second
-  //     await delay(250);
-
-  //     try {
-  //       // Second attempt
-  //       await sendMessageToTab(tab.id);
-  //       logger.log("Message sent successfully on second try.");
-  //     } catch (retryError) {
-  //       logger.error(
-  //         "Failed to send message on retry. The content script may have failed to load.",
-  //         retryError
-  //       );
-  //       alert(
-  //         "ReelDecks isn't ready yet. Please wait a moment for the page to finish loading and try again."
-  //       );
-  //       // On failure, reset the icon back to normal
-  //       await chrome.action.setIcon({
-  //         tabId: tab.id,
-  //         path: {
-  //           16: chrome.runtime.getURL("icons/icon16.png"),
-  //           32: chrome.runtime.getURL("icons/icon32.png"),
-  //         },
-  //       });
-  //     }
-  //   } else {
-  //     // Handle other potential errors
-  //     logger.error("An unexpected error occurred when sending message:", error);
-  //   }
-  // }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

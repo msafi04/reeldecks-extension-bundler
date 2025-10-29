@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ReelDecks V2 DEV",
+  "name": "ReelDecks - AI Flashcards for YouTube",
   "version": "1.0.0",
-  "description": "AI-powered learning from YouTube videos.",
+  "description": "AI-powered flashcards from YouTube videos. Transform lectures, tutorials, and courses into study decks with one click.",
   "permissions": [
     "storage",
     "activeTab",
