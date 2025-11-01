@@ -157,55 +157,47 @@ chrome.action.onClicked.addListener(async (tab) => {
     },
   });
 
-  const sendMessageToTab = async (tabId, action) => {
-    return chrome.tabs.sendMessage(tabId, {
-      action: action,
-    });
-  };
+  // const sendMessageToTab = async (tabId, action) => {
+  //   return chrome.tabs.sendMessage(tabId, {
+  //     action: action,
+  //   });
+  // };
 
-  // Retry mechanism
+  try {
+    // 1. First, TRY to send a message. This works if the script is already there.
+    await chrome.tabs.sendMessage(tab.id, { action: "toggle_sidebar" });
+    logger.log("Successfully sent toggle command to existing content script.");
+  } catch (error) {
+    // 2. If it fails, the content script isn't injected yet. Inject it now.
+    if (error.message.includes("Receiving end does not exist")) {
+      logger.log("Content script not found. Injecting CSS and JS now...");
+      try {
+        // Inject CSS first to prevent Flash of Unstyled Content
+        await chrome.scripting.insertCSS({
+          target: { tabId: tab.id },
+          files: ["assets/content.css"],
+        });
 
-  const MAX_ATTEMPTS = 5;
-  let attempts = 0;
+        // Now, inject the JavaScript
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ["assets/content.js"],
+        });
 
-  while (attempts < MAX_ATTEMPTS) {
-    try {
-      await sendMessageToTab(tab.id, "toggle_sidebar");
-      logger.log(
-        `Successfully connected to content script on attempt ${attempts + 1}.`
-      );
-      return; // Success, exit the function
-    } catch (error) {
-      if (error.message.includes("Receiving end does not exist")) {
-        attempts++;
-        if (attempts < MAX_ATTEMPTS) {
-          const delayTime = 100 * Math.pow(2, attempts); // 200ms, 400ms, 800ms...
-          logger.warn(
-            `Content script not ready. Retrying in ${delayTime}ms... (Attempt ${attempts})`
-          );
-          await delay(delayTime);
-        } else {
-          // All retries failed
-          logger.error(
-            "Could not connect to content script after multiple attempts.",
-            error
-          );
-          alert(
-            "ReelDecks could not load. Please try refreshing the YouTube page."
-          );
-          // Reset the icon on final failure
-          await chrome.action.setIcon({
-            tabId: tab.id,
-            path: {
-              16: chrome.runtime.getURL("icons/icon16.png"),
-              32: chrome.runtime.getURL("icons/icon32.png"),
-            },
-          });
-          return; // Exit
-        }
-      } else {
-        // A different, unexpected error occurred
-        logger.error("An unexpected error occurred:", error);
+        logger.log("Content script and CSS injected successfully.");
+        // The script will now load and show the sidebar by default.
+      } catch (injectionError) {
+        logger.error("Failed to inject content script or CSS:", injectionError);
+
+        // Handle failure: show an alert and reset the icon.
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: () => {
+            alert(
+              "ReelDecks could not be loaded. Please try refreshing the page and clicking the icon again."
+            );
+          },
+        });
         await chrome.action.setIcon({
           tabId: tab.id,
           path: {
@@ -213,10 +205,89 @@ chrome.action.onClicked.addListener(async (tab) => {
             32: chrome.runtime.getURL("icons/icon32.png"),
           },
         });
-        return; // Exit
       }
+    } else {
+      // 3. Handle other unexpected errors
+      logger.error(
+        "An unexpected error occurred while sending message:",
+        error
+      );
+      await chrome.action.setIcon({
+        tabId: tab.id,
+        path: {
+          16: chrome.runtime.getURL("icons/icon16.png"),
+          32: chrome.runtime.getURL("icons/icon32.png"),
+        },
+      });
     }
   }
+
+  // Retry mechanism
+
+  const MAX_ATTEMPTS = 5;
+  let attempts = 0;
+
+  // while (attempts < MAX_ATTEMPTS) {
+  //   try {
+  //     await sendMessageToTab(tab.id, "toggle_sidebar");
+  //     logger.log(
+  //       `Successfully connected to content script on attempt ${attempts + 1}.`
+  //     );
+  //     return; // Success, exit the function
+  //   } catch (error) {
+  //     if (error.message.includes("Receiving end does not exist")) {
+  //       attempts++;
+  //       if (attempts < MAX_ATTEMPTS) {
+  //         const delayTime = 100 * Math.pow(2, attempts); // 200ms, 400ms, 800ms...
+  //         logger.warn(
+  //           `Content script not ready. Retrying in ${delayTime}ms... (Attempt ${attempts})`
+  //         );
+  //         await delay(delayTime);
+  //       } else {
+  //         // All retries failed
+  //         logger.error(
+  //           "Could not connect to content script after multiple attempts.",
+  //           error
+  //         );
+  //         try {
+  //           await chrome.scripting.executeScript({
+  //             target: { tabId: tab.id },
+  //             func: () => {
+  //               alert(
+  //                 "ReelDecks could not load. Please try refreshing the YouTube page."
+  //               );
+  //             },
+  //           });
+  //         } catch (execError) {
+  //           logger.error(
+  //             "Failed to execute alert script in the tab.",
+  //             execError
+  //           );
+  //         }
+  //         // Reset the icon on final failure
+  //         await chrome.action.setIcon({
+  //           tabId: tab.id,
+  //           path: {
+  //             16: chrome.runtime.getURL("icons/icon16.png"),
+  //             32: chrome.runtime.getURL("icons/icon32.png"),
+  //           },
+  //         });
+  //         return; // Exit
+  //       }
+  //     } else {
+  //       // A different, unexpected error occurred
+  //       logger.error("An unexpected error occurred:", error);
+  //       await chrome.action.setIcon({
+  //         tabId: tab.id,
+  //         path: {
+  //           16: chrome.runtime.getURL("icons/icon16.png"),
+  //           32: chrome.runtime.getURL("icons/icon32.png"),
+  //         },
+  //       });
+  //       return; // Exit
+  //     }
+  //   }
+  // }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

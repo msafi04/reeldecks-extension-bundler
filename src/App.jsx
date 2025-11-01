@@ -8,7 +8,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 // https://github.com/msafi04/reeldecks-extension-bundler.git
 
 function App() {
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   const [currentView, setCurrentView] = useState("loading"); // 'loading', 'initial', 'results', etc.
   const [videoMetadata, setVideoMetadata] = useState(null);
@@ -30,6 +30,44 @@ function App() {
     setExistingDecks([]);
     setCurrentView("loading");
   };
+
+  // useEffect(() => {
+  //   // Process any queued messages from before React mounted
+  //   if (window.__reeldecksToggleQueue?.length) {
+  //     window.__reeldecksToggleQueue.forEach((msg) => {
+  //       // Handle the toggle
+  //       setIsSidebarVisible((prevIsVisible) => {
+  //         if (prevIsVisible === true) {
+  //           closeAndResetSidebar();
+  //           return false;
+  //         } else {
+  //           return true;
+  //         }
+  //       });
+  //     });
+  //     window.__reeldecksToggleQueue = [];
+  //   }
+
+  //   // Set up listener for future messages
+  //   const messageListener = (request, sender, sendResponse) => {
+  //     if (request.action === "toggle_sidebar") {
+  //       setIsSidebarVisible((prevIsVisible) => {
+  //         // If we are about to CLOSE the sidebar, reset the initialized flag
+  //         if (prevIsVisible === true) {
+  //           closeAndResetSidebar();
+  //           return false;
+  //         } else {
+  //           return true;
+  //         }
+  //       });
+  //       sendResponse({ status: "toggled" });
+  //     }
+  //     return true;
+  //   };
+
+  //   chrome.runtime.onMessage.addListener(messageListener);
+  //   return () => chrome.runtime.onMessage.removeListener(messageListener);
+  // }, [closeAndResetSidebar]);
 
   // ---  Effect to listen for external state changes ---
   useEffect(() => {
@@ -80,7 +118,9 @@ function App() {
         // 2. ROUTE based on auth status
         if (loggedIn && authToken) {
           const payload = parseJwtPayload(authToken);
-          setIsProUser(payload?.user?.subscriptionStatus === "active");
+          setIsProUser(
+            payload?.user?.subscriptionStatus === "active" ? true : false
+          );
           setIsNotionConnected(payload?.user?.isNotionConnected || false);
           logger.log(`User is Pro: ${isProUser}`);
 

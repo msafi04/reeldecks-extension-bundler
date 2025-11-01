@@ -6,7 +6,7 @@ import App from "../App";
 import "../sidebar/Sidebar.css"; // Your main styles
 import "rc-slider/assets/index.css"; // For the slider
 
-console.log("ReelDecks DEV: Content script loaded and ready.");
+console.log("ReelDecks: Content script loaded and ready.");
 
 // Create a container for our React app
 const rootElement = document.createElement("div");

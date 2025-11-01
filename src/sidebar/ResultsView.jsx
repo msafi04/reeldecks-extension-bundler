@@ -95,11 +95,7 @@ function StudyCard({
   };
 
   return (
-    <div
-      className="ytf-study-card"
-      style={positionStyle}
-      // onClick={() => isCurrent && setIsFlipped((prev) => !prev)}
-    >
+    <div className="ytf-study-card" style={positionStyle}>
       <div className="ytf-card-inner">
         <div
           className="ytf-card-front"
@@ -110,7 +106,6 @@ function StudyCard({
               className="ytf-card-content"
               onDoubleClick={handleDoubleClickCopy}
             >
-              {/* <div dangerouslySetInnerHTML={{ __html: cardData.front }} /> */}
               <CardContent content={cardData.front} />
             </div>
             {isCurrent && (
@@ -173,7 +168,6 @@ function StudyCard({
                 className="ytf-card-content"
                 onDoubleClick={handleDoubleClickCopy}
               >
-                {/* <div dangerouslySetInnerHTML={{ __html: cardData.back }} /> */}
                 <CardContent content={cardData.back} />
               </div>
             </div>
@@ -304,6 +298,7 @@ function ResultsView({
       isInteracting: false, // Are we currently dragging/clicking?
       startX: 0,
       currentX: 0,
+      startTime: 0,
     };
     let currentCardElement = null;
 
@@ -332,9 +327,15 @@ function ResultsView({
         return;
       }
 
+      // Don't start interaction if clicking on card content
+      if (target.closest(".ytf-card-content")) {
+        return;
+      }
+
       interaction.isInteracting = true;
       interaction.startX = e.clientX || e.touches?.[0].pageX;
       interaction.currentX = 0;
+      interaction.startTime = Date.now();
 
       currentCardElement = container.querySelector(
         '.ytf-study-card[style*="opacity: 1"]'
@@ -374,6 +375,8 @@ function ResultsView({
       const dragDistance = Math.abs(interaction.currentX);
       const swipeThreshold = 80;
       const clickThreshold = 5;
+      const interactionDuration = Date.now() - interaction.startTime;
+      const quickClickThreshold = 300;
 
       // --- DECIDE THE INTENT ---
       if (dragDistance > swipeThreshold) {
@@ -383,7 +386,10 @@ function ResultsView({
         } else {
           setCurrentCardIndex((prev) => Math.max(prev - 1, 0));
         }
-      } else if (dragDistance < clickThreshold) {
+      } else if (
+        dragDistance < clickThreshold &&
+        interactionDuration < quickClickThreshold
+      ) {
         // It was a CLICK.
         setIsFlipped((prev) => !prev);
       }
@@ -400,7 +406,9 @@ function ResultsView({
 
     // Attach the starting listener.
     container.addEventListener("mousedown", handleInteractionStart);
-    container.addEventListener("touchstart", handleInteractionStart);
+    container.addEventListener("touchstart", handleInteractionStart, {
+      passive: true,
+    });
 
     // Cleanup function to remove all listeners when the component unmounts.
     return () => {
@@ -463,10 +471,10 @@ function ResultsView({
   const handlePrimaryActionClick = () => {
     if (isUserLoggedIn) {
       // Logged-in user wants to edit this deck
-      redirectToWebApp({ deckIdToEdit: currentDeckData._id });
+      redirectToWebApp({ deckIdToEdit: currentDeckData?._id });
     } else {
       // Anonymous user wants to claim this deck by signing up
-      redirectToWebApp({ deckToClaim: currentDeckData._id });
+      redirectToWebApp({ deckToClaim: currentDeckData?._id });
     }
   };
 

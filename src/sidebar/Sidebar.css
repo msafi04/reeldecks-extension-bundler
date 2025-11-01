@@ -1617,3 +1617,35 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
+/* --- Recently Added List Styles --- */
+
+.ytf-recently-added-container {
+  margin-top: 20px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 15px;
+}
+
+.ytf-recently-added-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin: 0 0 10px 0;
+}
+
+#ytf-recently-added-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ytf-recently-added-item {
+  font-size: 13px;
+  background-color: var(--color-bg-hover);
+  padding: 8px 12px;
+  border-radius: var(--radius-small);
+  
+  white-space: nowrap;    
+  overflow: hidden;       
+  text-overflow: ellipsis;
+}

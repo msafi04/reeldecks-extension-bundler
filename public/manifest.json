@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ReelDecks - AI Flashcards for YouTube",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AI-powered flashcards from YouTube videos. Transform lectures, tutorials, and courses into study decks with one click.",
   "permissions": [
     "storage",
@@ -40,13 +40,6 @@
       "48": "icons/icon48.png"
     }
   },
-  "content_scripts": [
-    {
-      "matches": ["https://www.youtube.com/watch*"],
-      "js": ["assets/content.js"],
-      "css": ["assets/content.css"]
-    }
-  ],
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

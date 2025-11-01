@@ -50,13 +50,12 @@ function ExportDropdown({
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `flashcards_${currentDeckData._id}.txt`);
+      link.setAttribute("download", `flashcards_${currentDeckData?._id}.txt`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       notify.success("Card exported as txt successfully!");
     } catch (error) {
-      console.error("TXT export failed:", error);
       notify.error(`Failed to export as TXT.`);
     }
   };
@@ -81,13 +80,12 @@ function ExportDropdown({
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `flashcards_${currentDeckData._id}.csv`);
+      link.setAttribute("download", `flashcards_${currentDeckData?._id}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       notify.success("Card exported as csv successfully!");
     } catch (error) {
-      console.error("CSV export failed:", error);
       notify.error(`Failed to export as CSV.`);
     }
   };
@@ -99,7 +97,7 @@ function ExportDropdown({
       const response = await chrome.runtime.sendMessage({
         action: "exportForAnki",
         format: "anki",
-        deckId: currentDeckData._id,
+        deckId: currentDeckData?._id,
       });
 
       if (response.error) throw new Error(response.error);
@@ -137,7 +135,7 @@ function ExportDropdown({
     try {
       const response = await chrome.runtime.sendMessage({
         action: "exportDeckToNotion",
-        deckId: currentDeckData._id,
+        deckId: currentDeckData?._id,
       });
       if (response.error) throw new Error(response.error);
 
@@ -164,7 +162,7 @@ function ExportDropdown({
     try {
       // 1. Save the user's intent to storage.
       await chrome.storage.local.set({
-        postAuthAction: { type: "EXPORT_NOTION", deckId: currentDeckData._id },
+        postAuthAction: { type: "EXPORT_NOTION", deckId: currentDeckData?._id },
       });
 
       logger.log("User intent to export Notion saved.");

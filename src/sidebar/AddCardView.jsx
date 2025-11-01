@@ -380,6 +380,22 @@ function AddCardView({
           )}
         </div>
         {/* Add recentlt added for continuus mode */}
+        {isContinuousMode && recentlyAdded?.length > 0 && (
+          <div className="ytf-recently-added-container">
+            <h5 className="ytf-recently-added-title">Recently Added</h5>
+            <div id="ytf-recently-added-list">
+              {recentlyAdded?.map((cardFront, index) => (
+                <div
+                  key={index}
+                  className="ytf-recently-added-item"
+                  title={cardFront}
+                >
+                  {cardFront}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       <div className="ytf-form-actions">
         <button
