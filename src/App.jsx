@@ -4,6 +4,7 @@ import Sidebar from "./sidebar/Sidebar";
 import { logger, parseJwtPayload } from "./utils/extension";
 
 import { NotificationProvider } from "./context/NotificationContext";
+import InfographicModal from "./sidebar/InfographicModal";
 
 // https://github.com/msafi04/reeldecks-extension-bundler.git
 
@@ -21,6 +22,13 @@ function App() {
   const [isNotionConnected, setIsNotionConnected] = useState(false);
 
   const [loadingContext, setLoadingContext] = useState("initial"); // 'initial', 'decks', 'cards', 'form
+
+  const [infographicResult, setInfographicResult] = useState(null);
+  const [isInfographicModalOpen, setIsInfographicModalOpen] = useState(false);
+
+  const handleCloseInfographicModal = () => {
+    setIsInfographicModalOpen(false);
+  };
 
   const closeAndResetSidebar = () => {
     logger.log("Closing sidebar and resetting all state.");
@@ -361,8 +369,17 @@ function App() {
           onRetry={handleRetry}
           loadingContext={loadingContext}
           setLoadingContext={setLoadingContext}
+          infographicResult={infographicResult}
+          setInfographicResult={setInfographicResult}
+          setIsInfographicModalOpen={setIsInfographicModalOpen}
         />
       ) : null}
+      {isInfographicModalOpen && infographicResult && (
+        <InfographicModal
+          imageUrl={infographicResult.imageUrl}
+          onClose={handleCloseInfographicModal}
+        />
+      )}
     </NotificationProvider>
   );
 }

@@ -8,6 +8,10 @@ import StatusView from "./StatusView";
 import DeckListSkeleton from "./DeckListSkeleton";
 import CardViewSkeleton from "./CardViewSkeleton";
 
+import InfographicWizard from "./InfographicWizard";
+import InfographicResultView from "./InfographicResultView";
+import InfographicLoadingView from "./InfographicLoadingView";
+
 import { logger, formatDate, redirectToWebApp } from "../utils/extension";
 import { contentTypeLabels } from "../utils/options";
 
@@ -33,6 +37,9 @@ function Sidebar({
   onRetry,
   loadingContext,
   setLoadingContext,
+  infographicResult,
+  setInfographicResult,
+  setIsInfographicModalOpen,
 }) {
   const notify = useNotifier();
 
@@ -194,6 +201,59 @@ function Sidebar({
     }
   };
 
+  const handleGoToInfographicWizard = async () => {
+    if (!videoMetadata) {
+      logger.log(
+        "Metadata not present, fetching before showing generation form..."
+      );
+      setLoadingContext("form");
+      setCurrentView("loading");
+      try {
+        const videoId = new URLSearchParams(window.location.search).get("v");
+        const metaResponse = await chrome.runtime.sendMessage({
+          action: "getVideoMetadata",
+          videoId: videoId,
+        });
+        if (metaResponse.error) throw new Error(metaResponse.error);
+
+        setVideoMetadata(metaResponse);
+      } catch (err) {
+        logger.error("Failed to fetch metadata for generation:", err);
+        alert("Could not load video data. Please try again.");
+        setCurrentView(
+          existingDecks.length > 0 ? "deckSelection" : "initialChoice"
+        );
+        return;
+      }
+    }
+    setCurrentView("infographicWizard");
+  };
+
+  const handleGenerateInfographic = (payload) => {
+    logger.log("Starting infographic generation with payload:", payload);
+    // We can create a new loading context if we want custom text
+    setLoadingContext("infographic");
+    setCurrentView("loading");
+
+    chrome.runtime
+      .sendMessage({ action: "generateInfographic", payload })
+      .then((response) => {
+        if (response?.error) throw new Error(response?.error);
+        setInfographicResult(response); // e.g., response = { imageUrl: '...' }
+        setCurrentView("infographicResult");
+      })
+      .catch((err) => {
+        logger.error("Infographic generation failed:", err);
+        notify.error(`Error: ${err.message}`);
+        // Go back to the wizard on failure
+        setCurrentView("infographicWizard");
+      });
+  };
+
+  const handleExpandInfographic = () => {
+    setIsInfographicModalOpen(true);
+  };
+
   const handleAddCustomCard = async (currentIndex) => {
     const insertionIndex = currentIndex + 1;
     logger.log(
@@ -298,6 +358,11 @@ function Sidebar({
             </div>
           );
         }
+        if (loadingContext === "infographic") {
+          return (
+            <InfographicLoadingView title="Creating Your Infographic..." />
+          );
+        }
         return (
           <div id="ytf-loading-state">
             <div className="ytf-loader"></div>
@@ -325,23 +390,86 @@ function Sidebar({
         return (
           <div id="ytf-initial-choice-state">
             <h3>How would you like to start?</h3>
-            <div class="ytf-choice-container">
+            <div className="ytf-choice-container">
               <button
                 id="ytf-generate-ai-btn"
-                class="ytf-choice-btn"
+                className="ytf-choice-btn"
                 onClick={handleGoToGenerate}
               >
-                ✨<span>Generate with AI</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"></path>
+                  <path d="M19 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"></path>
+                  <path d="M6 17l0.75 2.25L9 20l-2.25 0.75L6 23l-0.75-2.25L3 20l2.25-0.75z"></path>
+                </svg>
+                <span>Generate AI Flashcards</span>
+                {/* ✨<span>Generate with AI</span> */}
                 <small>Let our AI create a deck for you.</small>
               </button>
               <button
                 id="ytf-create-manual-btn"
-                class="ytf-choice-btn"
+                className="ytf-choice-btn"
                 onClick={handleManualCreate}
               >
-                ✍️
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="4" y="2" width="12" height="16" rx="2"></rect>
+                  <line x1="7" y1="6" x2="13" y2="6"></line>
+                  <line x1="7" y1="10" x2="13" y2="10"></line>
+                  <line x1="7" y1="14" x2="10" y2="14"></line>
+                  <path d="M18 15l-3 3v-5l3-3 2 2-2 3z"></path>
+                  <line x1="15" y1="18" x2="16" y2="19"></line>
+                </svg>
                 <span>Create My Own Deck</span>
                 <small>Start with a blank deck and add your own notes.</small>
+              </button>
+              <button
+                id="ytf-generate-infographic-btn"
+                className="ytf-choice-btn" // Use the same styling
+                onClick={handleGoToInfographicWizard} // We will create this handler
+                disabled={!isProUser} // IMPORTANT: Gate for Pro users
+                title={
+                  !isProUser
+                    ? "Available for paid tier"
+                    : "Generate a visual summary"
+                }
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>Generate Infographic</span>
+                <small>Create a visual summary of the video.</small>
+                {!isProUser && <span className="ytf-pro-badge">PRO</span>}
               </button>
             </div>
           </div>
@@ -350,7 +478,7 @@ function Sidebar({
         return (
           <div id="ytf-deck-selection-state">
             <h4>You have existing decks for this video.</h4>
-            <div id="ytf-deck-list" class="ytf-deck-list-container">
+            <div id="ytf-deck-list" className="ytf-deck-list-container">
               {existingDecks?.map((deck) => {
                 const friendlyLabel =
                   contentTypeLabels[deck.cardType] ||
@@ -378,20 +506,84 @@ function Sidebar({
               })}
             </div>
 
-            <div class="ytf-deck-selection-actions">
+            <div className="ytf-deck-selection-actions">
               <button
                 id="ytf-deck-selection-create-manual"
-                class="ytf-secondary-action-btn"
+                className="ytf-secondary-action-btn"
                 onClick={handleManualCreate}
               >
-                ✍️ Create My Own
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="4" y="2" width="12" height="16" rx="2"></rect>
+                  <line x1="7" y1="6" x2="13" y2="6"></line>
+                  <line x1="7" y1="10" x2="13" y2="10"></line>
+                  <line x1="7" y1="14" x2="10" y2="14"></line>
+                  <path d="M18 15l-3 3v-5l3-3 2 2-2 3z"></path>
+                  <line x1="15" y1="18" x2="16" y2="19"></line>
+                </svg>
+                <span>Create My Own</span>
+                {/* ✍️ Create My Own */}
               </button>
               <button
                 id="ytf-deck-selection-generate-ai"
-                class="ytf-primary-action-btn"
+                className="ytf-primary-action-btn"
                 onClick={handleGoToGenerate}
               >
-                ✨ Generate with AI
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"></path>
+                  <path d="M19 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"></path>
+                  <path d="M6 17l0.75 2.25L9 20l-2.25 0.75L6 23l-0.75-2.25L3 20l2.25-0.75z"></path>
+                </svg>
+                <span>Generate with AI</span>
+                {/* ✨ Generate with AI */}
+              </button>
+              <button
+                id="ytf-deck-selection-generate-infographic"
+                className="ytf-infograph-action-btn" // Or a new style
+                onClick={handleGoToInfographicWizard}
+                disabled={!isProUser}
+                title={
+                  !isProUser
+                    ? "Available for Pro users"
+                    : "Generate a visual summary"
+                }
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>Generate Infographic</span>
+                {/* 🖼️ Generate Infographic */}
               </button>
             </div>
           </div>
@@ -410,6 +602,24 @@ function Sidebar({
             setCurrentCardIndex={setCurrentCardIndex}
             currentDeckData={currentDeckData}
             setIsShareModalOpen={setIsShareModalOpen}
+          />
+        );
+      case "infographicWizard":
+        return (
+          <InfographicWizard
+            videoMetadata={videoMetadata}
+            onGenerate={handleGenerateInfographic}
+            onBack={showDeckSelectionView} // Or handleBackToInitial
+            isUserLoggedIn={isUserLoggedIn}
+          />
+        );
+      case "infographicResult":
+        return (
+          <InfographicResultView
+            imageUrl={infographicResult.imageUrl}
+            onExpand={handleExpandInfographic}
+            onBack={showDeckSelectionView}
+            onRegenerate={handleGoToInfographicWizard}
           />
         );
       case "addCard":

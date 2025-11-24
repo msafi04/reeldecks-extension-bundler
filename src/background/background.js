@@ -661,6 +661,54 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     })();
     return true;
+  } else if (request.action === "generateInfographic") {
+    logger.log("Background script received 'generateInfographic' message.");
+
+    // Use an async function to handle the fetch call
+    (async () => {
+      try {
+        const { authToken } = await chrome.storage.local.get("authToken");
+
+        let result;
+
+        if (authToken) {
+          result = await authenticatedFetch("/generate/infographic", {
+            method: "POST",
+            body: JSON.stringify(request.payload),
+          });
+        } else {
+          logger.log("No auth token found, sending anonymous request.");
+          const response = await fetch(
+            `${backendUrl}/generate/infographic`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(request.payload),
+            }
+          );
+
+          result = await response.json();
+
+          if (!response.ok) {
+            // If server responds with an error, create an error object to send back
+            throw new Error(data.message || `Server error: ${response.status}`);
+          }
+        }
+
+        // Send a success response back to the content script
+        sendResponse(result);
+      } catch (error) {
+        logger.error("Background script fetch error:", error);
+        // Send an error response back to the content script
+        sendResponse({ error: error.message });
+      }
+    })();
+
+    // Return true to indicate that we will be sending a response asynchronously.
+    // This is CRUCIAL for the message channel to stay open.
+    return true;
   }
 });
 

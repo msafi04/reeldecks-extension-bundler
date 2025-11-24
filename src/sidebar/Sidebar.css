@@ -15,6 +15,9 @@
   /* Colors */
   --color-primary-red: #CC0000;
   --color-primary-red-hover: #A30000;
+
+  --color-primary-purple: #272727; /* #3EA6FF */
+  --color-primary-purple-hover: #3f3f3f; /* #1C84E0 */
   
   --color-text-primary: #0F0F0F;
   --color-text-secondary: #606060;
@@ -223,6 +226,24 @@
   flex-shrink: 0;
 }
 
+.ytf-infograph-action-btn {
+  width: 100%;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary-purple);
+  color: var(--color-text-on-primary);
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .ytf-primary-action-btn svg {
   width: 16px;
   height: 16px;
@@ -231,6 +252,11 @@
 .ytf-generate-btn:hover, .ytf-primary-action-btn:hover {
   background-color: var(--color-primary-red-hover);
 }
+
+.ytf-infograph-action-btn:hover {
+  background-color: var(--color-primary-purple-hover);
+}
+
 .ytf-generate-btn { margin-top: auto; margin-bottom: 2px; } /* Push to bottom on initial screen */
 
 /* Secondary Action Button (Cancel, Export .txt) */
@@ -285,14 +311,14 @@
   margin: 20px 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .ytf-option-group label {
   display: block;
   font-weight: 500;
   font-size: 13px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: var(--color-text-secondary);
 }
 
@@ -623,8 +649,16 @@
 }
 
 .ytf-deck-selection-actions .ytf-secondary-action-btn,
-.ytf-deck-selection-actions .ytf-primary-action-btn {
+.ytf-deck-selection-actions .ytf-primary-action-btn,
+.ytf-deck-selection-actions .ytf-infograph-action-btn {
   flex-grow: 1;
+}
+
+.ytf-deck-selection-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .ytf-choice-container {
@@ -652,6 +686,14 @@
 }
 .ytf-choice-btn span { font-weight: 500; font-size: 16px; }
 .ytf-choice-btn small { font-size: 13px; color: var(--color-text-secondary); }
+
+.ytf-choice-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  border-color: #e0e0e0;
+}
 
 /* --- [REELDECKS] ADD CARD VIEW --- */
 .ytf-add-card-scroll-area {
@@ -1648,4 +1690,406 @@
   white-space: nowrap;    
   overflow: hidden;       
   text-overflow: ellipsis;
+}
+
+/* Infographic styles */
+
+.ytf-option-card {
+  background-color: #f0f0f0; /* A light gray, adjust to your theme */
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ytf-option-card:hover {
+  border-color: #007bff; /* Your app's primary color */
+  transform: translateY(-2px);
+}
+
+.ytf-option-card.selected {
+  border-color: #007bff; /* Your app's primary color */
+  background-color: #e6f2ff; /* A light blue, matching the primary color */
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.1);
+}
+
+.ytf-option-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.ytf-option-card-header svg.ytf-card-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+}
+
+.ytf-option-card-description {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.4;
+}
+
+.ytf-theme-swatches {
+    display: flex;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.ytf-theme-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Specific checkmark for selected card */
+.ytf-checkmark-icon {
+  color: #007bff; /* Your primary color */
+  font-weight: bold;
+}
+
+/* Container for the horizontal scroll area */
+.ytf-options-scroller {
+  display: flex; /* Arranges items in a row */
+  overflow-x: auto; /* Enables horizontal scrolling ONLY when needed */
+  overflow-y: hidden; /* Hides the vertical scrollbar */
+  padding: 5px 0 15px 0; /* Adds some space for the scrollbar and shadow */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on touch devices */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #ccc #f0f0f0; /* Firefox */
+}
+
+/* Optional: Nicer scrollbar for Webkit browsers (Chrome, Safari) */
+.ytf-options-scroller::-webkit-scrollbar {
+  height: 8px;
+}
+.ytf-options-scroller::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+.ytf-options-scroller::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+/* Style for the cards INSIDE the scroller */
+.ytf-options-scroller .ytf-option-card {
+  flex: 0 0 150px; /* Prevents cards from shrinking. Sets a fixed width. */
+  margin-right: 10px; /* Adds space between cards */
+  width: 150px; /* Explicit width */
+}
+
+/* 1. The main container for the preview */
+.ytf-infographic-preview-container {
+  width: 100%;
+  max-height: 300px; /* Controls the max height of the preview box */
+  border-radius: 8px;
+  overflow: hidden;   /* This is KEY: it crops the parts of the image that don't fit */
+  position: relative; /* Needed for the overlay effect */
+  cursor: pointer;
+  border: 1px solid #ddd;
+  margin: 15px 0;
+}
+
+/* 2. The image itself inside the container */
+.ytf-infographic-preview-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* This is the MAGIC property: it scales the image to fill the container,
+     maintaining its aspect ratio by cropping the excess. Perfect for a preview. */
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+/* 3. A cool hover effect to give the user feedback */
+.ytf-infographic-preview-container:hover .ytf-infographic-preview-image {
+  transform: scale(1.05); /* Slightly zoom in on hover */
+}
+
+/* 4. The overlay that appears on hover */
+.ytf-infographic-expand-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.3s ease;
+  pointer-events: none; /* Allows clicks to go through to the container */
+}
+
+/* 5. Show the overlay when hovering the main container */
+.ytf-infographic-preview-container:hover .ytf-infographic-expand-overlay {
+  opacity: 1; /* Make it visible on hover */
+}
+
+/* === START: Infographic Modal Styles === */
+/* This ensures no conflict with other modals like ShareDeckModal */
+
+/* The full-screen, semi-transparent backdrop */
+.ytf-info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* The main modal "window" or content box */
+.ytf-info-modal-content {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 950px;
+  width: 95%;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Modal Header: Title and Close Button */
+.ytf-info-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.ytf-info-modal-header h4 {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* Modal Body: Where the image goes */
+.ytf-info-modal-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  background-color: #f9f9f9;
+}
+
+.ytf-info-modal-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Modal Footer: Action buttons */
+.ytf-info-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
+}
+
+/* General button style for this specific modal */
+.ytf-info-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ytf-info-modal-btn:hover {
+  background-color: #f0f0f0;
+  border-color: #bbb;
+}
+
+/* Primary button style for this specific modal */
+.ytf-info-modal-btn.primary {
+  background-color: #007bff; /* Your app's primary color */
+  color: white;
+  border-color: #007bff;
+}
+.ytf-info-modal-btn.primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.ytf-info-modal-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ytf-info-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ytf-info-modal-icon-btn {
+  background-color: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.ytf-info-modal-icon-btn:hover {
+  background-color: #f0f0f0;
+  color: #111;
+}
+
+.ytf-info-modal-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ===  Dynamic Infographc Loading View Styles === */
+
+.ytf-loading-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  height: 100%;
+}
+
+.ytf-loading-title {
+  margin-bottom: 8px;
+}
+
+.ytf-loading-subtitle {
+  margin: 0 0 30px 0;
+  font-size: 14px;
+  color: #666;
+  max-width: 250px;
+}
+
+.ytf-progress-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.ytf-progress-step {
+  position: relative;
+  padding-left: 30px; /* Space for the circle and line */
+  padding-bottom: 25px;
+  font-weight: 500;
+  color: #888; /* Inactive step color */
+  transition: color 0.3s ease;
+}
+
+/* The circle for each step */
+.ytf-progress-step::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #ccc;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #ccc;
+  transition: all 0.3s ease;
+}
+
+/* The vertical line connecting the steps */
+.ytf-progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 22px;
+  bottom: 0;
+  width: 2px;
+  background-color: #ccc;
+  transition: background-color 0.3s ease;
+}
+
+/* Styling for the COMPLETED step */
+.ytf-progress-step.completed {
+  color: #4CAF50; /* Green for completed */
+}
+.ytf-progress-step.completed::before {
+  background-color: #4CAF50;
+  box-shadow: 0 0 0 2px #4CAF50;
+  content: '✓'; /* Checkmark for completed */
+  color: white;
+  text-align: center;
+  font-size: 10px;
+  line-height: 16px;
+}
+.ytf-progress-step.completed::after {
+  background-color: #4CAF50;
+}
+
+/* Styling for the ACTIVE step */
+.ytf-progress-step.active {
+  color: #111; /* Dark text for active */
+}
+.ytf-progress-step.active::before {
+  background-color: #CC0000; /* Your primary red */
+  box-shadow: 0 0 0 2px #CC0000;
+  animation: pulse 1.5s infinite; /* Pulsing animation for active step */
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(204, 0, 0, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(204, 0, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(204, 0, 0, 0); }
+}
+
+/* Optional: a subtle animated loading bar at the bottom */
+.ytf-animated-loader-bar {
+  width: 80%;
+  height: 4px;
+  background-color: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+.ytf-animated-loader-bar::before {
+  content: '';
+  display: block;
+  width: 40%;
+  height: 100%;
+  background-color: #CC0000;
+  border-radius: 2px;
+  animation: slide 2s infinite ease-in-out;
+}
+
+@keyframes slide {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(250%); }
+  100% { transform: translateX(-100%); }
 }

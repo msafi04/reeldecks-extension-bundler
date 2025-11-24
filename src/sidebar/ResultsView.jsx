@@ -303,16 +303,6 @@ function ResultsView({
     let currentCardElement = null;
 
     const handleInteractionStart = (e) => {
-      // --- THE GOLDEN RULE ---
-      // If the interaction starts on a selectable or clickable element, ignore it completely.
-      // This lets text selection and link clicks work naturally.
-      // if (e.target.closest(".ytf-card-content, a, button")) {
-      //   return;
-      // }
-      // Only prevent default for mouse events (not needed for touch with passive listener)
-      // if (e.type === "mousedown") {
-      //   e.preventDefault();
-      // }
 
       const target = e.target;
       const tagName = target.tagName.toLowerCase();

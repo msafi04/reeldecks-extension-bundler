@@ -20,3 +20,9 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+// --- THIS IS THE NEW, CRUCIAL PART ---
+// Create a separate, dedicated container for modals at the same level as the sidebar root.
+const modalRootElement = document.createElement("div");
+modalRootElement.id = "reeldecks-modal-root";
+document.body.appendChild(modalRootElement);
