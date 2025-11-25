@@ -254,6 +254,11 @@ function Sidebar({
     setIsInfographicModalOpen(true);
   };
 
+  const handleLoadInfographic = (infographic) => {
+    setInfographicResult(infographic);
+    setCurrentView("infographicResult");
+  };
+
   const handleAddCustomCard = async (currentIndex) => {
     const insertionIndex = currentIndex + 1;
     logger.log(
@@ -480,29 +485,72 @@ function Sidebar({
             <h4>You have existing decks for this video.</h4>
             <div id="ytf-deck-list" className="ytf-deck-list-container">
               {existingDecks?.map((deck) => {
-                const friendlyLabel =
-                  contentTypeLabels[deck.cardType] ||
-                  deck.cardType ||
-                  contentTypeLabels.default;
-                return (
-                  <button
-                    key={deck._id}
-                    className="ytf-deck-item"
-                    onClick={() => handleLoadDeck(deck._id)}
-                  >
-                    <div className="ytf-deck-item-main">
-                      <span className="ytf-deck-item-title">
-                        {friendlyLabel || "Manual Deck"}
+                if (deck.type === "infographic") {
+                  return (
+                    <button
+                      key={deck._id}
+                      className="ytf-infographic-item"
+                      style={{ backgroundImage: `url(${deck.imageUrl})` }}
+                      onClick={() => handleLoadInfographic(deck)}
+                    >
+                      <div className="ytf-infographic-item-main">
+                        <span className="ytf-infographic-item-title">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <rect
+                              x="3"
+                              y="3"
+                              width="18"
+                              height="18"
+                              rx="2"
+                              ry="2"
+                            ></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                          </svg>
+                          Infographic
+                        </span>
+                        <span className="ytf-infographic-item-date">
+                          Created on {formatDate(deck.createdAt)}
+                        </span>
+                      </div>
+                      {/* <span className="ytf-infographic-item-info">View</span> */}
+                    </button>
+                  );
+                } else {
+                  const friendlyLabel =
+                    contentTypeLabels[deck.cardType] ||
+                    deck.cardType ||
+                    contentTypeLabels.default;
+                  return (
+                    <button
+                      key={deck._id}
+                      className="ytf-deck-item"
+                      onClick={() => handleLoadDeck(deck._id)}
+                    >
+                      <div className="ytf-deck-item-main">
+                        <span className="ytf-deck-item-title">
+                          {friendlyLabel || "Manual Deck"}
+                        </span>
+                        <span className="ytf-deck-item-date">
+                          Created on {formatDate(deck.createdAt)}
+                        </span>
+                      </div>
+                      <span className="ytf-deck-item-info">
+                        {deck.quantity} cards
                       </span>
-                      <span className="ytf-deck-item-date">
-                        Created on {formatDate(deck.createdAt)}
-                      </span>
-                    </div>
-                    <span className="ytf-deck-item-info">
-                      {deck.quantity} cards
-                    </span>
-                  </button>
-                );
+                    </button>
+                  );
+                }
               })}
             </div>
 

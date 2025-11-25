@@ -2093,3 +2093,83 @@
   50% { transform: translateX(250%); }
   100% { transform: translateX(-100%); }
 }
+
+/* === START: NEW Infographic Tile Styles === */
+/* These styles are completely separate from .ytf-deck-item */
+
+.ytf-infographic-item {
+  position: relative; /* Required for the overlay effect */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 60px; /* Gives the tile a nice height */
+  padding: 12px 16px;
+  margin-top: 2px;
+  
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  overflow: hidden; /* Important for the background image and rounded corners */
+  
+  /* Background image properties */
+  background-size: cover;
+  background-position: center;
+
+  color: white; /* All text inside will be white */
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.ytf-infographic-item:hover {
+  /* border-color: #bf3535; Use your primary red for hover highlight */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* This ::before pseudo-element creates the dark gradient overlay */
+/* It ensures the white text is always readable, no matter the image */
+.ytf-infographic-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to right, rgba(63, 63, 63, 0.8) 0%, rgba(53, 53, 53, 0.1) 100%);
+  z-index: 1; /* Sits below the text but above the background image */
+}
+
+/* We need to make sure the content sits on top of the overlay */
+.ytf-infographic-item-main,
+.ytf-infographic-item-info {
+  position: relative;
+  z-index: 2;
+}
+
+/* Child element styles, safely namespaced */
+.ytf-infographic-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ytf-infographic-item-title {
+  font-weight: 500;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space for icon */
+}
+.ytf-infographic-item-date {
+  font-size: 12px;
+  opacity: 0.9;
+  color: white;
+}
+.ytf-infographic-item-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgb(251, 249, 249);
+  background-color: rgba(123, 122, 122, 0.15); /* A subtle glass-like background */
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
